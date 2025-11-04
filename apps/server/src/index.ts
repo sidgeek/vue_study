@@ -6,6 +6,8 @@ import { env } from './config/env'
 import { buildAuthRouter } from './routes/auth'
 import { verifyJwt } from './middlewares/auth'
 import { createUserRepo } from './datasource/factory'
+import { openapi } from './config/openapi'
+import { koaSwagger } from 'koa2-swagger-ui'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
@@ -17,6 +19,11 @@ app.use(bodyParser())
 // 基础健康检查
 router.get('/health', (ctx) => {
   ctx.body = { status: 'ok' }
+})
+
+// OpenAPI 文档 JSON
+router.get('/openapi.json', (ctx) => {
+  ctx.body = openapi
 })
 
 // 认证路由
@@ -31,6 +38,16 @@ router.get('/me', verifyJwt, async (ctx) => {
 })
 
 app.use(router.routes()).use(router.allowedMethods())
+
+// Swagger UI 挂载在 /api/docs
+app.use(
+  koaSwagger({
+    routePrefix: '/api/docs',
+    swaggerOptions: {
+      url: '/api/openapi.json'
+    }
+  })
+)
 
 app.on('error', (err) => {
   console.error('Unhandled error', err)
