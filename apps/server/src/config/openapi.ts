@@ -70,6 +70,26 @@ export const openapi = {
                 },
                 required: ['username', 'password']
               }
+            },
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: { type: 'string' },
+                  password: { type: 'string' }
+                },
+                required: ['username', 'password']
+              }
+            },
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: { type: 'string' },
+                  password: { type: 'string' }
+                },
+                required: ['username', 'password']
+              }
             }
           }
         },
@@ -94,6 +114,26 @@ export const openapi = {
           required: true,
           content: {
             'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: { type: 'string' },
+                  password: { type: 'string' }
+                },
+                required: ['username', 'password']
+              }
+            },
+            'application/x-www-form-urlencoded': {
+              schema: {
+                type: 'object',
+                properties: {
+                  username: { type: 'string' },
+                  password: { type: 'string' }
+                },
+                required: ['username', 'password']
+              }
+            },
+            'multipart/form-data': {
               schema: {
                 type: 'object',
                 properties: {

@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import Router from '@koa/router'
-import bodyParser from 'koa-bodyparser'
+import koaBody from 'koa-body'
 import cors from '@koa/cors'
 import { env } from './config/env'
 import { buildAuthRouter } from './routes/auth'
@@ -15,7 +15,13 @@ const router = new Router({ prefix: '/api' })
 const { repo, prisma } = createUserRepo()
 
 app.use(cors())
-app.use(bodyParser())
+app.use(
+  koaBody({
+    multipart: true,
+    urlencoded: true,
+    json: true
+  })
+)
 
 // 在解析完 body 后挂载日志，确保能记录请求体
 app.use(requestLogger)
