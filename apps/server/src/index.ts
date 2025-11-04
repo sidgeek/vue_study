@@ -5,6 +5,7 @@ import cors from '@koa/cors'
 import { env } from './config/env'
 import { buildAuthRouter } from './routes/auth'
 import { verifyJwt } from './middlewares/auth'
+import { requestLogger } from './middlewares/logger'
 import { createUserRepo } from './datasource/factory'
 import { openapi } from './config/openapi'
 import { koaSwagger } from 'koa2-swagger-ui'
@@ -15,6 +16,9 @@ const { repo, prisma } = createUserRepo()
 
 app.use(cors())
 app.use(bodyParser())
+
+// 在解析完 body 后挂载日志，确保能记录请求体
+app.use(requestLogger)
 
 // 基础健康检查
 router.get('/health', (ctx) => {
