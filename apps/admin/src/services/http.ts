@@ -1,5 +1,6 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { AxiosHeaders } from 'axios'
+import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const instance: AxiosInstance = axios.create({
@@ -7,13 +8,13 @@ const instance: AxiosInstance = axios.create({
   timeout: 10000
 })
 
-instance.interceptors.request.use((config: AxiosRequestConfig) => {
+instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const auth = useAuthStore()
   if (auth.token) {
-    config.headers = {
-      ...(config.headers || {}),
-      Authorization: `Bearer ${auth.token}`
-    }
+    const token = `Bearer ${auth.token}`
+    // 统一将 headers 转为 AxiosHeaders 实例，保证类型与运行时一致
+    config.headers = AxiosHeaders.from(config.headers)
+    ;(config.headers as AxiosHeaders).set('Authorization', token)
   }
   return config
 })
