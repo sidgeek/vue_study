@@ -11,6 +11,7 @@
         @select="onSelect"
       >
         <el-menu-item index="dashboard">仪表盘</el-menu-item>
+        <el-menu-item index="analysis">分析</el-menu-item>
       </el-menu>
     </nav>
     <div class="right">
@@ -34,6 +35,7 @@ const displayName = computed(() => auth.name || '未登录')
 
 function onSelect(index: string) {
   if (index === 'dashboard') router.push({ name: 'dashboard' })
+  if (index === 'analysis') router.push({ name: 'analysis' })
 }
 
 function onLogout() {
