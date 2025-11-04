@@ -22,6 +22,7 @@ export const openapi = {
         properties: {
           id: { type: 'integer' },
           username: { type: 'string' },
+          nickname: { type: 'string', nullable: true }
         },
         required: ['id', 'username']
       },
@@ -173,6 +174,36 @@ export const openapi = {
             }
           },
           '401': { description: '未授权' }
+        }
+      }
+    }
+    ,
+    '/users': {
+      get: {
+        summary: '用户列表（分页）',
+        parameters: [
+          { name: 'page', in: 'query', required: false, schema: { type: 'integer', default: 1, minimum: 1 } },
+          { name: 'pageSize', in: 'query', required: false, schema: { type: 'integer', default: 10, minimum: 1, maximum: 100 } }
+        ],
+        responses: {
+          '200': {
+            description: '获取成功',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: { type: 'array', items: { $ref: '#/components/schemas/User' } },
+                    page: { type: 'integer' },
+                    pageSize: { type: 'integer' },
+                    total: { type: 'integer' },
+                    totalPages: { type: 'integer' }
+                  },
+                  required: ['items', 'page', 'pageSize', 'total']
+                }
+              }
+            }
+          }
         }
       }
     }

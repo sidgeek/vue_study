@@ -53,6 +53,21 @@ router.get('/me', verifyJwt, async (ctx) => {
   ctx.body = { id: user.id, username: user.username, nickname: user.nickname ?? null }
 })
 
+// 用户列表（分页）
+router.get('/users', async (ctx) => {
+  const page = Number(ctx.query.page ?? 1)
+  const pageSize = Number(ctx.query.pageSize ?? 10)
+  const { items, total } = await repo.list({ page, pageSize })
+  const safeItems = items.map((u) => ({ id: u.id, username: u.username, nickname: (u as any).nickname ?? (u as any).name ?? null }))
+  ctx.body = {
+    items: safeItems,
+    page,
+    pageSize,
+    total,
+    totalPages: Math.ceil(total / Math.max(1, pageSize))
+  }
+})
+
 app.use(router.routes()).use(router.allowedMethods())
 
 // Swagger UI 挂载在 /api/docs
