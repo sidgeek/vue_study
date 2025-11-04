@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { login, register } from '@/apis/auth'
 
 type Role = 'admin' | 'user'
 
@@ -17,6 +18,17 @@ export const useAuthStore = defineStore('auth', {
       this.role = role
       this.name = name
       localStorage.setItem('auth', JSON.stringify({ token, role, name }))
+    },
+    async loginWithApi(username: string, password: string) {
+      const res = await login(username, password)
+      const name = res.user.nickname ?? res.user.username
+      this.login(res.token, 'user', name)
+    },
+    async registerAndLogin(username: string, password: string) {
+      await register(username, password, username)
+      const res = await login(username, password)
+      const name = res.user.nickname ?? res.user.username
+      this.login(res.token, 'user', name)
     },
     logout() {
       this.token = ''
