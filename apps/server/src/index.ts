@@ -34,7 +34,13 @@ router.use('/auth', auth.routes(), auth.allowedMethods())
 router.get('/me', verifyJwt, async (ctx) => {
   const userId = (ctx.state.user?.sub as number) || 0
   const user = await repo.findById(userId)
-  ctx.body = user
+  if (!user) {
+    ctx.status = 404
+    ctx.body = { message: 'User not found' }
+    return
+  }
+  // 仅返回非敏感信息，并将 name 统一为 nickname
+  ctx.body = { id: user.id, username: user.username, nickname: user.nickname ?? null }
 })
 
 app.use(router.routes()).use(router.allowedMethods())

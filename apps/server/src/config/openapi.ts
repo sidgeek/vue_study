@@ -22,7 +22,6 @@ export const openapi = {
         properties: {
           id: { type: 'integer' },
           username: { type: 'string' },
-          name: { type: 'string', nullable: true }
         },
         required: ['id', 'username']
       },
@@ -68,7 +67,6 @@ export const openapi = {
                 properties: {
                   username: { type: 'string' },
                   password: { type: 'string' },
-                  name: { type: 'string', nullable: true }
                 },
                 required: ['username', 'password']
               }

@@ -8,10 +8,9 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
 
   // 注册
   router.post('/register', async (ctx) => {
-    const { username, password, name } = ctx.request.body as {
+    const { username, password } = ctx.request.body as {
       username?: string
       password?: string
-      name?: string
     }
     if (!username || !password) {
       ctx.status = 400
@@ -27,9 +26,9 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
     }
 
     const passwordHash = bcrypt.hashSync(password, 10)
-    const user = await repo.create({ username, passwordHash, name })
+    const user = await repo.create({ username, passwordHash, nickname: username })
 
-    ctx.body = { id: user.id, username: user.username, name: user.name }
+    ctx.body = { id: user.id, username: user.username, nickname: user.nickname }
   })
 
   // 登录
@@ -58,7 +57,7 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
     )
     ctx.body = {
       token,
-      user: { id: user.id, username: user.username, name: user.name }
+      user: { id: user.id, username: user.username, nickname: user.nickname }
     }
   })
 
