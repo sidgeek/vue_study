@@ -12,8 +12,9 @@ export async function verifyJwt(ctx: Context, next: Next) {
 
   const token = auth.slice('Bearer '.length)
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as { sub: number; username: string }
-    ctx.state.user = payload
+    const payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload
+    const user = { sub: Number(payload.sub), username: String((payload as any).username) }
+    ctx.state.user = user
     await next()
   } catch {
     ctx.status = 401
