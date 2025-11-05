@@ -9,10 +9,13 @@ import { requestLogger } from './middlewares/logger'
 import { createUserRepo } from './datasource/factory'
 import { openapi } from './config/openapi'
 import { koaSwagger } from 'koa2-swagger-ui'
+import { createPerfRepo } from './datasource/perfFactory'
+import { buildPerfRouter } from './routes/perf'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
 const { repo, prisma } = createUserRepo()
+const { repo: perfRepo } = createPerfRepo()
 
 app.use(cors())
 app.use(
@@ -39,6 +42,10 @@ router.get('/openapi.json', (ctx) => {
 // 认证路由
 const auth = buildAuthRouter(repo, env.JWT_SECRET)
 router.use('/auth', auth.routes(), auth.allowedMethods())
+
+// 性能上报与统计
+const perf = buildPerfRouter(perfRepo)
+router.use('/perf', perf.routes(), perf.allowedMethods())
 
 // 示例受保护路由
 router.get('/me', verifyJwt, async (ctx) => {
