@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  server:
+    container_name: server-app
+    image: server:latest
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-dev-secret}
+      - DATA_SOURCE=file
+      - DATA_FILE_PATH=/app/data/db.json
+    volumes:
+      - server-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  server-data:
