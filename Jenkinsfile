@@ -42,14 +42,16 @@ pipeline {
           set -euo pipefail
           docker run --rm \
             --user \$(id -u):\$(id -g) \
-            -v "\$PWD":/workspace \
+            -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
             ${NODE_IMAGE} sh -lc '
+              echo "Mounted workspace:"; ls -la /workspace;
+              test -d /workspace/apps || (echo "Missing /workspace/apps"; exit 2);
               corepack enable || true;
               corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION};
               pnpm -v;
-              pnpm -C apps/admin install --prefer-frozen-lockfile;
-              pnpm -C apps/server install --prefer-frozen-lockfile;
+              cd /workspace/apps/admin && pnpm install --prefer-frozen-lockfile;
+              cd /workspace/apps/server && pnpm install --prefer-frozen-lockfile;
             '
         """
       }
@@ -61,9 +63,9 @@ pipeline {
         sh """
           docker run --rm \
             --user \$(id -u):\$(id -g) \
-            -v "\$PWD":/workspace \
+            -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
-            ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/admin build'
+            ${NODE_IMAGE} sh -lc 'cd /workspace/apps/admin && pnpm build'
         """
       }
     }
@@ -74,9 +76,9 @@ pipeline {
         sh """
           docker run --rm \
             --user \$(id -u):\$(id -g) \
-            -v "\$PWD":/workspace \
+            -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
-            ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/server build'
+            ${NODE_IMAGE} sh -lc 'cd /workspace/apps/server && pnpm build'
         """
       }
     }
