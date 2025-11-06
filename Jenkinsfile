@@ -45,13 +45,27 @@ pipeline {
             -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
             ${NODE_IMAGE} sh -lc '
-              echo "Mounted workspace:"; ls -la /workspace;
-              test -d /workspace/apps || (echo "Missing /workspace/apps"; exit 2);
-              corepack enable || true;
-              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION};
-              pnpm -v;
-              cd /workspace/apps/admin && pnpm install --prefer-frozen-lockfile;
-              cd /workspace/apps/server && pnpm install --prefer-frozen-lockfile;
+              set -eux
+              echo "Container user (uid:gid):"; id -u; id -g
+              echo "Workspace mount perms:"; ls -ldn /workspace
+              echo "Workspace top-level:"; ls -la /workspace
+              echo "Workspace tree /workspace/apps:"; ls -la /workspace/apps || true
+              if [ ! -d /workspace/apps ]; then
+                echo "ERROR: Missing /workspace/apps"
+                echo "Listing /workspace for diagnostics:"; find /workspace -maxdepth 2 -type d -print
+                exit 2
+              fi
+              test -f /workspace/pnpm-workspace.yaml && echo "Found pnpm-workspace.yaml" || echo "WARN: pnpm-workspace.yaml not found at root"
+              echo "Node diagnostics:"; node -v; npm -v
+              corepack enable || true
+              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+              pnpm -v; command -v pnpm || true
+              echo "Admin package presence:"; ls -la /workspace/apps/admin
+              test -f /workspace/apps/admin/package.json || { echo "ERROR: admin/package.json missing"; exit 2; }
+              echo "Server package presence:"; ls -la /workspace/apps/server
+              test -f /workspace/apps/server/package.json || { echo "ERROR: server/package.json missing"; exit 2; }
+              cd /workspace/apps/admin && pnpm install --prefer-frozen-lockfile
+              cd /workspace/apps/server && pnpm install --prefer-frozen-lockfile
             '
         """
       }
@@ -65,7 +79,14 @@ pipeline {
             --user \$(id -u):\$(id -g) \
             -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
-            ${NODE_IMAGE} sh -lc 'cd /workspace/apps/admin && pnpm build'
+            ${NODE_IMAGE} sh -lc '
+              set -eux
+              echo "Workspace /workspace/apps/admin contents:"; ls -la /workspace/apps/admin
+              corepack enable || true
+              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+              pnpm -v; node -v
+              cd /workspace/apps/admin && pnpm build
+            '
         """
       }
     }
@@ -78,7 +99,14 @@ pipeline {
             --user \$(id -u):\$(id -g) \
             -v "${env.WORKSPACE}":/workspace \
             -w /workspace \
-            ${NODE_IMAGE} sh -lc 'cd /workspace/apps/server && pnpm build'
+            ${NODE_IMAGE} sh -lc '
+              set -eux
+              echo "Workspace /workspace/apps/server contents:"; ls -la /workspace/apps/server
+              corepack enable || true
+              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+              pnpm -v; node -v
+              cd /workspace/apps/server && pnpm build
+            '
         """
       }
     }
