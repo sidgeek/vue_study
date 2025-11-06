@@ -8,7 +8,7 @@ pipeline {
   options {
     disableConcurrentBuilds()
     timestamps()
-    ansiColor('xterm')
+    wrap([$class: 'AnsiColorBuildWrapper', colorMapName: 'xterm'])
   }
   stages {
     stage('Checkout') {
