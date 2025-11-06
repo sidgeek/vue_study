@@ -48,7 +48,8 @@ pipeline {
               corepack enable || true;
               corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION};
               pnpm -v;
-              pnpm install --prefer-frozen-lockfile;
+              pnpm -C apps/admin install --prefer-frozen-lockfile;
+              pnpm -C apps/server install --prefer-frozen-lockfile;
             '
         """
       }
