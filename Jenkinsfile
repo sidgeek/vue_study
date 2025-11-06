@@ -37,76 +37,56 @@ pipeline {
     }
 
     stage('Install workspace (docker)') {
+      agent { docker { image "${NODE_IMAGE}"; args '-u 0:0' } }
       steps {
         sh """
-          set -euo pipefail
-          docker run --rm \
-            --user \$(id -u):\$(id -g) \
-            -v "${env.WORKSPACE}":/workspace \
-            -w /workspace \
-            ${NODE_IMAGE} sh -lc '
-              set -eux
-              echo "Container user (uid:gid):"; id -u; id -g
-              echo "Workspace mount perms:"; ls -ldn /workspace
-              echo "Workspace top-level:"; ls -la /workspace
-              echo "Workspace tree /workspace/apps:"; ls -la /workspace/apps || true
-              if [ ! -d /workspace/apps ]; then
-                echo "ERROR: Missing /workspace/apps"
-                echo "Listing /workspace for diagnostics:"; find /workspace -maxdepth 2 -type d -print
-                exit 2
-              fi
-              test -f /workspace/pnpm-workspace.yaml && echo "Found pnpm-workspace.yaml" || echo "WARN: pnpm-workspace.yaml not found at root"
-              echo "Node diagnostics:"; node -v; npm -v
-              corepack enable || true
-              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
-              pnpm -v; command -v pnpm || true
-              echo "Admin package presence:"; ls -la /workspace/apps/admin
-              test -f /workspace/apps/admin/package.json || { echo "ERROR: admin/package.json missing"; exit 2; }
-              echo "Server package presence:"; ls -la /workspace/apps/server
-              test -f /workspace/apps/server/package.json || { echo "ERROR: server/package.json missing"; exit 2; }
-              cd /workspace/apps/admin && pnpm install --prefer-frozen-lockfile
-              cd /workspace/apps/server && pnpm install --prefer-frozen-lockfile
-            '
+          set -eux
+          echo "Workspace top-level:"; ls -la
+          test -d apps || { echo "ERROR: Missing ./apps"; ls -la; exit 2; }
+          test -f pnpm-workspace.yaml && echo "Found pnpm-workspace.yaml" || echo "WARN: pnpm-workspace.yaml not found at root"
+          node -v; npm -v
+          corepack enable || true
+          corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+          pnpm -v; command -v pnpm || true
+          echo "pnpm store dir:"; pnpm config get store-dir || true
+          echo "Admin package presence:"; ls -la apps/admin
+          test -f apps/admin/package.json || { echo "ERROR: admin/package.json missing"; exit 2; }
+          echo "Server package presence:"; ls -la apps/server
+          test -f apps/server/package.json || { echo "ERROR: server/package.json missing"; exit 2; }
+          cd apps/admin && pnpm install --prefer-frozen-lockfile
+          cd ../server && pnpm install --prefer-frozen-lockfile
         """
       }
     }
 
     stage('Build Admin') {
       when { expression { return env.ADMIN_CHANGED == 'true' } }
+      agent { docker { image "${NODE_IMAGE}"; args '-u 0:0' } }
       steps {
         sh """
-          docker run --rm \
-            --user \$(id -u):\$(id -g) \
-            -v "${env.WORKSPACE}":/workspace \
-            -w /workspace \
-            ${NODE_IMAGE} sh -lc '
-              set -eux
-              echo "Workspace /workspace/apps/admin contents:"; ls -la /workspace/apps/admin
-              corepack enable || true
-              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
-              pnpm -v; node -v
-              cd /workspace/apps/admin && pnpm build
-            '
+          set -eux
+          corepack enable || true
+          corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+          pnpm -v; node -v
+          echo "pnpm store dir:"; pnpm config get store-dir || true
+          echo "Check node_modules presence:"; [ -d apps/admin/node_modules ] && echo present || echo missing
+          cd apps/admin && pnpm build
         """
       }
     }
 
     stage('Build Server') {
       when { expression { return env.SERVER_CHANGED == 'true' } }
+      agent { docker { image "${NODE_IMAGE}"; args '-u 0:0' } }
       steps {
         sh """
-          docker run --rm \
-            --user \$(id -u):\$(id -g) \
-            -v "${env.WORKSPACE}":/workspace \
-            -w /workspace \
-            ${NODE_IMAGE} sh -lc '
-              set -eux
-              echo "Workspace /workspace/apps/server contents:"; ls -la /workspace/apps/server
-              corepack enable || true
-              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
-              pnpm -v; node -v
-              cd /workspace/apps/server && pnpm build
-            '
+          set -eux
+          corepack enable || true
+          corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION}
+          pnpm -v; node -v
+          echo "pnpm store dir:"; pnpm config get store-dir || true
+          echo "Check node_modules presence:"; [ -d apps/server/node_modules ] && echo present || echo missing
+          cd apps/server && pnpm build
         """
       }
     }
