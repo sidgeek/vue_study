@@ -1,4 +1,14 @@
-const BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000/api'
+const RAW_BASE = import.meta.env.VITE_API_BASE as string | undefined
+
+if (!RAW_BASE) {
+  throw new Error('VITE_API_BASE is not set in environment')
+}
+
+// 允许配置为不带 /api 的根地址（例如 http://localhost:3000 或 http://106.54.186.241:3000）
+// 若已包含 /api 则不重复追加
+const BASE = RAW_BASE.endsWith('/api')
+  ? RAW_BASE
+  : `${RAW_BASE.replace(/\/$/, '')}/api`
 
 async function request(path: string, init: RequestInit = {}) {
   const url = `${BASE}${path}`
