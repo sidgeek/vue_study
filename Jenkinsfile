@@ -4,6 +4,7 @@ pipeline {
     PNPM_VERSION = '10.20.0'
     ADMIN_CHANGED = 'false'
     SERVER_CHANGED = 'false'
+    NODE_IMAGE = 'node:18-alpine'
   }
   options {
     disableConcurrentBuilds()
@@ -35,30 +36,47 @@ pipeline {
       }
     }
 
-    stage('Setup pnpm') {
+    stage('Install workspace (docker)') {
       steps {
-        sh 'corepack prepare pnpm@10.20.0 --activate || true'
-      }
-    }
-
-    stage('Install workspace') {
-      steps {
-        sh 'pnpm -v || true'
-        sh 'pnpm install -w --prefer-frozen-lockfile'
+        sh """
+          set -euo pipefail
+          docker run --rm \
+            --user $(id -u):$(id -g) \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            ${NODE_IMAGE} sh -lc '
+              corepack enable || true;
+              corepack prepare pnpm@${PNPM_VERSION} --activate || npm i -g pnpm@${PNPM_VERSION};
+              pnpm -v;
+              pnpm install -w --prefer-frozen-lockfile;
+            '
+        """
       }
     }
 
     stage('Build Admin') {
       when { expression { return env.ADMIN_CHANGED == 'true' } }
       steps {
-        sh 'pnpm --filter ./apps/admin build'
+        sh """
+          docker run --rm \
+            --user $(id -u):$(id -g) \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/admin build'
+        """
       }
     }
 
     stage('Build Server') {
       when { expression { return env.SERVER_CHANGED == 'true' } }
       steps {
-        sh 'pnpm --filter ./apps/server build'
+        sh """
+          docker run --rm \
+            --user $(id -u):$(id -g) \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/server build'
+        """
       }
     }
 
