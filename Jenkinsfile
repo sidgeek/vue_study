@@ -41,8 +41,8 @@ pipeline {
         sh """
           set -euo pipefail
           docker run --rm \
-            --user $(id -u):$(id -g) \
-            -v "$PWD":/workspace \
+            --user \$(id -u):\$(id -g) \
+            -v "\$PWD":/workspace \
             -w /workspace \
             ${NODE_IMAGE} sh -lc '
               corepack enable || true;
@@ -59,8 +59,8 @@ pipeline {
       steps {
         sh """
           docker run --rm \
-            --user $(id -u):$(id -g) \
-            -v "$PWD":/workspace \
+            --user \$(id -u):\$(id -g) \
+            -v "\$PWD":/workspace \
             -w /workspace \
             ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/admin build'
         """
@@ -72,8 +72,8 @@ pipeline {
       steps {
         sh """
           docker run --rm \
-            --user $(id -u):$(id -g) \
-            -v "$PWD":/workspace \
+            --user \$(id -u):\$(id -g) \
+            -v "\$PWD":/workspace \
             -w /workspace \
             ${NODE_IMAGE} sh -lc 'pnpm --filter ./apps/server build'
         """
