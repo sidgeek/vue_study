@@ -1,51 +1,101 @@
-node {
-    properties([disableConcurrentBuilds()])
-    def rev_no = ""
-    def image_name = "server"
-    def image_full = ""
-    def container_name = "server-app"
-
-    stage('Checkout'){
+pipeline {
+  agent any
+  environment {
+    PNPM_VERSION = '10.20.0'
+    ADMIN_CHANGED = 'false'
+    SERVER_CHANGED = 'false'
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+  }
+  stages {
+    stage('Checkout') {
+      steps {
         checkout scm
-        rev_no = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-        image_full = "${image_name}:${rev_no}"
-        echo "REV_NO=${rev_no}, IMAGE=${image_full}"
+      }
     }
 
-    stage('Build Image'){
-        // 参考 /11：直接构建与标记镜像（apps/server 作为上下文）
-        sh """
-          set -euo pipefail
-          docker --version
-          docker build -t ${image_full} -f apps/server/Dockerfile --build-arg REV_NO=${rev_no} apps/server
-          docker tag ${image_full} ${image_name}:latest
-        """
+    stage('Detect Changes') {
+      steps {
+        script {
+          def previous = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+          if (!previous || previous.trim().isEmpty()) {
+            // 首次构建或无成功基线时回退一个提交
+            previous = sh(returnStdout: true, script: 'git rev-parse HEAD~1').trim()
+          }
+          def diff = sh(returnStdout: true, script: "git diff --name-only ${previous} ${env.GIT_COMMIT}").trim()
+          def files = diff ? diff.split(/\r?\n/) : []
+          def adminTouched = files.any { it.startsWith('apps/admin/') }
+          def serverTouched = files.any { it.startsWith('apps/server/') }
+          env.ADMIN_CHANGED = adminTouched.toString()
+          env.SERVER_CHANGED = serverTouched.toString()
+          echo "Changed paths -> admin=${env.ADMIN_CHANGED}, server=${env.SERVER_CHANGED}"
+        }
+      }
     }
 
-    stage('Deploy'){
-        // 停旧容器并以当前提交镜像启动 server 服务
-        sh """
-          set -euo pipefail
-          # 停止并删除旧容器（如果存在）
-          if docker ps -a --format '{{.Names}}' | grep -w ${container_name} >/dev/null 2>&1; then
-            docker rm -f ${container_name} || true
-          fi
-
-          # 使用版本化标签运行新容器，避免 latest 混淆
-          docker run -d \
-            --name ${container_name} \
-            --restart unless-stopped \
-            -p 3000:3000 \
-            -e NODE_ENV=production \
-            -e JWT_SECRET=dev-secret \
-            -e DATA_SOURCE=file \
-            -e DATA_FILE_PATH=/app/data/db.json \
-            -v server-data:/app/data \
-            ${image_full}
-
-          # 简单健康检查与镜像确认
-          docker inspect -f '{{ .Config.Image }}' ${container_name} | grep -q '${image_full}'
-          docker logs --since 5s ${container_name} || true
-        """
+    stage('Setup pnpm') {
+      steps {
+        sh 'corepack prepare pnpm@10.20.0 --activate || true'
+      }
     }
+
+    stage('Install workspace') {
+      steps {
+        sh 'pnpm -v || true'
+        sh 'pnpm install -w --prefer-frozen-lockfile'
+      }
+    }
+
+    stage('Build Admin') {
+      when { expression { return env.ADMIN_CHANGED == 'true' } }
+      steps {
+        sh 'pnpm --filter ./apps/admin build'
+      }
+    }
+
+    stage('Build Server') {
+      when { expression { return env.SERVER_CHANGED == 'true' } }
+      steps {
+        sh 'pnpm --filter ./apps/server build'
+      }
+    }
+
+    stage('Deploy Admin') {
+      when { expression { return env.ADMIN_CHANGED == 'true' } }
+      steps {
+        script {
+          if (fileExists('docker-compose.yml')) {
+            sh 'docker compose -f docker-compose.yml up -d --build admin'
+          } else {
+            sh 'docker build -t admin:latest -f apps/admin/Dockerfile apps/admin'
+            sh 'docker rm -f admin || true'
+            sh 'docker run -d --name admin -p 5173:80 admin:latest'
+          }
+        }
+      }
+    }
+
+    stage('Deploy Server') {
+      when { expression { return env.SERVER_CHANGED == 'true' } }
+      steps {
+        script {
+          if (fileExists('docker-compose.yml')) {
+            sh 'docker compose -f docker-compose.yml up -d --build server'
+          } else {
+            def rev = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            def image = "server:${rev}"
+            sh """
+              docker build -t ${image} -f apps/server/Dockerfile --build-arg REV_NO=${rev} apps/server
+              docker tag ${image} server:latest
+              docker rm -f server-app || true
+              docker run -d --name server-app --restart unless-stopped -p 3000:3000 server:latest
+            """
+          }
+        }
+      }
+    }
+  }
 }
