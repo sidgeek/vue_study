@@ -30,6 +30,7 @@ const data = {
   nodes: [
     { id: 'A', label: '开始' },
     { id: 'B', label: '任务 1' },
+    { id: 'B2', label: '任务 1-2' },
     { id: 'C', label: '任务 2' },
     { id: 'D', label: '任务 3' },
     { id: 'E', label: '结束' }
@@ -37,7 +38,8 @@ const data = {
   edges: [
     { source: 'A', target: 'B' },
     { source: 'A', target: 'C' },
-    { source: 'B', target: 'D' },
+    { source: 'B', target: 'B2' },
+    { source: 'B2', target: 'D' },
     { source: 'C', target: 'D' },
     { source: 'D', target: 'E' }
   ]
@@ -58,7 +60,8 @@ function init() {
       type: 'dagre',
       rankdir: dir.value,
       nodesep: 30,
-      ranksep: 60
+      ranksep: 60,
+      controlPoints: true
     },
     modes: { default: ['drag-node', 'zoom-canvas', 'drag-canvas'] },
     defaultNode: {
@@ -68,7 +71,8 @@ function init() {
       labelCfg: { style: { fill: '#333' } }
     },
     defaultEdge: {
-      style: { stroke: '#bfbfbf', endArrow: true }
+      type: 'polyline',
+      style: { stroke: '#bfbfbf', endArrow: true, radius: 8 }
     }
   })
 
