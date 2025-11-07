@@ -28,7 +28,7 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
     const passwordHash = bcrypt.hashSync(password, 10)
     const user = await repo.create({ username, passwordHash, nickname: username })
 
-    ctx.body = { id: user.id, username: user.username, nickname: user.nickname }
+    ctx.body = { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId }
   })
 
   // 登录
@@ -57,7 +57,7 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
     )
     ctx.body = {
       token,
-      user: { id: user.id, username: user.username, nickname: user.nickname }
+      user: { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId }
     }
   })
 

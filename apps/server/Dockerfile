@@ -36,7 +36,9 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 
 # Ensure Prisma Client exists even without dev deps
+# Copy generated Prisma Client and engines
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Defaults (override via `-e` when running)
 ENV PORT=3000 \

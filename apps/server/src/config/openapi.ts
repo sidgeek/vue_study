@@ -22,9 +22,10 @@ export const openapi = {
         properties: {
           id: { type: 'integer' },
           username: { type: 'string' },
-          nickname: { type: 'string', nullable: true }
+          nickname: { type: 'string', nullable: true },
+          roleId: { type: 'integer' }
         },
-        required: ['id', 'username']
+        required: ['id', 'username', 'roleId']
       },
       LoginResponse: {
         type: 'object',
@@ -204,6 +205,36 @@ export const openapi = {
               }
             }
           }
+        }
+      }
+    }
+    ,
+    '/users/{id}/role': {
+      post: {
+        summary: '为用户分配角色',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  roleId: { type: 'integer' },
+                  roleCode: { type: 'string', enum: ['SUPER_ADMIN','ADMIN','STAFF','VISITOR'] }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: '更新成功',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } }
+          },
+          '400': { description: '请求参数非法或角色不存在' }
         }
       }
     }
