@@ -13,6 +13,7 @@
         <el-menu-item index="dashboard">仪表盘</el-menu-item>
         <el-menu-item index="analysis">分析</el-menu-item>
         <el-menu-item index="users">用户管理</el-menu-item>
+        <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
       </el-menu>
     </nav>
     <div class="right">
@@ -38,6 +39,7 @@ function onSelect(index: string) {
   if (index === 'dashboard') router.push({ name: 'dashboard' })
   if (index === 'analysis') router.push({ name: 'analysis' })
   if (index === 'users') router.push({ name: 'users' })
+  if (index === 'g6-dagre') router.push({ name: 'g6-dagre' })
 }
 
 function onLogout() {
