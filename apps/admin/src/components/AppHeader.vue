@@ -10,6 +10,7 @@
         :default-active="active"
         @select="onSelect"
       >
+        <el-menu-item index="home">首页</el-menu-item>
         <el-menu-item index="dashboard">仪表盘</el-menu-item>
         <el-menu-item index="analysis">分析</el-menu-item>
         <el-menu-item index="users">用户管理</el-menu-item>
@@ -34,10 +35,11 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-const active = computed(() => (route.name?.toString() || 'dashboard'))
+const active = computed(() => (route.name?.toString() || 'home'))
 const displayName = computed(() => auth.name || '未登录')
 
 function onSelect(index: string) {
+  if (index === 'home') router.push({ name: 'home' })
   if (index === 'dashboard') router.push({ name: 'dashboard' })
   if (index === 'analysis') router.push({ name: 'analysis' })
   if (index === 'users') router.push({ name: 'users' })
