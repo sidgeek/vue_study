@@ -39,6 +39,7 @@ COPY --from=builder /app/dist ./dist
 # Copy generated Prisma Client and engines
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 # Defaults (override via `-e` when running)
 ENV PORT=3000 \
@@ -50,4 +51,6 @@ ENV PORT=3000 \
 VOLUME ["/app/data"]
 
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+CMD ["sh", "./docker-entrypoint.sh"]
