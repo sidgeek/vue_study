@@ -19,11 +19,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import G6 from '@antv/g6'
 
 const containerRef = ref<HTMLDivElement | null>(null)
-const graphRef = ref<G6.Graph | null>(null)
+// 修正类型声明：@antv/g6 默认导出不提供命名空间类型，使用构造函数实例类型
+type GGraph = InstanceType<typeof G6.Graph>
+const graphRef = ref<GGraph | null>(null)
 const dir = ref<'TB' | 'LR' | 'BT' | 'RL'>('LR')
 
 const data = {
@@ -45,12 +47,23 @@ const data = {
   ]
 }
 
-function init() {
+let ro: ResizeObserver | null = null
+
+async function init() {
+  await nextTick()
   const el = containerRef.value
   if (!el) return
   graphRef.value?.destroy()
-  const width = el.clientWidth
-  const height = el.clientHeight
+  let width = el.clientWidth
+  let height = el.clientHeight
+
+  // 兼容首次渲染容器尺寸为 0 的情况（Card/Flex 布局尚未完成）
+  if (width === 0 || height === 0) {
+    await new Promise((r) => setTimeout(r, 50))
+    width = el.clientWidth
+    height = el.clientHeight
+    if (width === 0 || height === 0) return
+  }
 
   const graph = new G6.Graph({
     container: el,
@@ -95,11 +108,18 @@ onMounted(() => {
     graphRef.value.changeSize(el.clientWidth, el.clientHeight)
   }
   window.addEventListener('resize', resize)
+  // 使用 ResizeObserver 在容器尺寸变化时自动调整画布
+  if ('ResizeObserver' in window) {
+    ro = new ResizeObserver(() => resize())
+    if (containerRef.value) ro.observe(containerRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   graphRef.value?.destroy()
   graphRef.value = null
+  ro?.disconnect()
+  ro = null
 })
 
 watch(dir, () => {

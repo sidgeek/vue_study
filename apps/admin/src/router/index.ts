@@ -39,6 +39,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/G6Dagre.vue'),
         meta: { requiresAuth: true }
       }
+      ,
+      {
+        path: 'slate',
+        name: 'slate',
+        component: () => import('@/views/Slate.vue'),
+        meta: { requiresAuth: true }
+      }
     ]
   },
   { path: '/:pathMatch(.*)*', name: '404', component: () => import('@/views/NotFound.vue') }
