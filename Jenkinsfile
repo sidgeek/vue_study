@@ -67,7 +67,7 @@ node {
         postgres:15
 
       # 等待数据库就绪
-      for i in $(seq 1 30); do
+      for i in \$(seq 1 30); do
         if docker exec ${dbContainerName} pg_isready -U postgres -d appdb; then
           break
         fi
