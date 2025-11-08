@@ -18,15 +18,17 @@
     "@antv/g6": "^4.8.23",
     "@element-plus/icons-vue": "^2.3.2",
     "@floating-ui/vue": "^1.1.9",
-    "axios": "^1.13.1",
-    "monaco-editor": "^0.53.0",
     "ant-design-vue": "^4.2.6",
+    "axios": "^1.13.1",
     "element-plus": "^2.11.7",
+    "monaco-editor": "^0.53.0",
     "pinia": "^3.0.3",
     "slate-history": "^0.113.1",
     "slate-vue3": "^0.8.0",
     "vue": "^3.5.22",
-    "vue-router": "^4.6.3"
+    "vue-demi": "^0.14.10",
+    "vue-router": "^4.6.3",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

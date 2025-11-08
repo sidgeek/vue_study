@@ -6,6 +6,7 @@ import { createPinia } from 'pinia'
 import { useAuthStore } from './stores/auth'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import { initWebVitalsCollector } from './metrics/webVitals'
 
 const app = createApp(App)
 app.use(createPinia())
@@ -13,4 +14,6 @@ app.use(createPinia())
 useAuthStore().restore()
 app.use(router)
 app.use(ElementPlus)
+// 初始化 Web Vitals 采集（无侵入）
+initWebVitalsCollector(router)
 app.mount('#app')

@@ -10,10 +10,14 @@ import { createUserRepo } from './datasource/factory'
 import { openapi } from './config/openapi'
 import { koaSwagger } from 'koa2-swagger-ui'
 import { ensureDefaultRoles } from './config/roles'
+import * as path from 'path'
+import { appendFile, mkdir } from 'fs/promises'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
-const { repo, prisma } = createUserRepo()
+// 使用异步 bootstrap 初始化数据源与路由，避免顶层 await
+async function bootstrap() {
+  const { repo, prisma } = await createUserRepo()
 
 app.use(cors())
 app.use(
@@ -69,6 +73,42 @@ router.get('/users', async (ctx) => {
   }
 })
 
+// Web Vitals 指标采集上报入口（无鉴权）
+router.post('/metrics/webvitals', async (ctx) => {
+  const body = (ctx.request as any).body || {}
+  const metrics = Array.isArray(body?.metrics) ? body.metrics : null
+  const appId = String(body?.appId || '')
+  const sessionId = String(body?.sessionId || '')
+  if (!metrics || !appId || !sessionId) {
+    ctx.status = 400
+    ctx.body = { message: 'invalid payload' }
+    return
+  }
+
+  const record = {
+    ts: Date.now(),
+    appId,
+    sessionId,
+    navigationId: Number(body?.navigationId || 0),
+    route: body?.route || null,
+    viewport: body?.viewport || null,
+    connection: body?.connection || null,
+    metrics
+  }
+
+  try {
+    const dir = path.resolve(process.cwd(), 'data')
+    await mkdir(dir, { recursive: true })
+    const file = path.join(dir, 'web-vitals.log')
+    await appendFile(file, JSON.stringify(record) + '\n')
+    ctx.status = 204
+  } catch (err: any) {
+    console.error('Write web-vitals failed:', err)
+    ctx.status = 500
+    ctx.body = { message: 'persist failed' }
+  }
+})
+
 // 为用户分配角色（简单版）
 router.post('/users/:id/role', async (ctx) => {
   const id = Number(ctx.params.id)
@@ -95,7 +135,7 @@ router.post('/users/:id/role', async (ctx) => {
   }
 })
 
-app.use(router.routes()).use(router.allowedMethods())
+  app.use(router.routes()).use(router.allowedMethods())
 
 // Swagger UI 挂载在 /api/docs
 app.use(
@@ -107,21 +147,26 @@ app.use(
   })
 )
 
-app.on('error', (err) => {
-  console.error('Unhandled error', err)
-})
+  app.on('error', (err) => {
+    console.error('Unhandled error', err)
+  })
 
 // 确保 Prisma 模式下默认角色存在
-ensureDefaultRoles(prisma).catch((err) => console.error('Ensure roles failed', err))
+  ensureDefaultRoles(prisma).catch((err) => console.error('Ensure roles failed', err))
 
-app.listen(env.PORT, () => {
-  console.log(`API server listening on http://localhost:${env.PORT}`)
-})
+  app.listen(env.PORT, () => {
+    console.log(`API server listening on http://localhost:${env.PORT}`)
+  })
 
 // 可选：优雅关闭（仅当使用 Prisma）
-process.on('SIGINT', async () => {
-  if (prisma) {
-    await prisma.$disconnect()
-  }
-  process.exit(0)
+  process.on('SIGINT', async () => {
+    if (prisma) {
+      await prisma.$disconnect()
+    }
+    process.exit(0)
+  })
+}
+
+bootstrap().catch((err) => {
+  console.error('Server bootstrap failed:', err)
 })
