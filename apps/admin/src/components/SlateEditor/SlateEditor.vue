@@ -135,7 +135,6 @@ const initEditor = (inputText, _isFocus = true) => {
 // 输入框自定义元素渲染
 const renderElement = (elProps) => {
   const { attributes, children, element } = elProps;
-  console.log(">>> ew", editor.value.children[0]);
   const curInputIndex = editor.value.children[0].children.findIndex(
     (node) => node === element
   );

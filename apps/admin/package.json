@@ -19,6 +19,8 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@floating-ui/vue": "^1.1.9",
     "axios": "^1.13.1",
+    "monaco-editor": "^0.53.0",
+    "ant-design-vue": "^4.2.6",
     "element-plus": "^2.11.7",
     "pinia": "^3.0.3",
     "slate-history": "^0.113.1",

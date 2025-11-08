@@ -46,6 +46,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Slate.vue'),
         meta: { requiresAuth: true }
       }
+      ,
+      {
+        path: 'monaco-editor',
+        name: 'monaco-editor',
+        component: () => import('@/views/Monaco.vue'),
+        meta: { requiresAuth: true }
+      }
     ]
   },
   { path: '/:pathMatch(.*)*', name: '404', component: () => import('@/views/NotFound.vue') }
