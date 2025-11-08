@@ -64,7 +64,8 @@ node {
 
       # 输出可访问地址；feat/* 使用随机端口时解析映射结果
       if [ "${hostPort}" = "0" ]; then
-        docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"$0}'
+        # 逃逸 awk 中的 $ 符号，避免 Groovy GString 插值报错
+        docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"\$0}'
       else
         echo "Service URL: http://localhost:${hostPort}"
       fi
