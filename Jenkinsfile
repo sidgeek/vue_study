@@ -41,23 +41,49 @@ node {
     // 按分支部署：main/dev 固定端口；feat 分支随机端口便于并行测试
     def safeBranch = branch_name.replaceAll('[^A-Za-z0-9_.-]', '-')
     def containerName = "server-app-${safeBranch}"
+    def dbContainerName = "postgres-db-${safeBranch}"
+    def networkName = "net-${safeBranch}"
+    def dbVolumeName = "postgres-data-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
 
     sh """
       set -euo pipefail
-      if docker ps -a --format '{{.Names}}' | grep -w ${containerName} >/dev/null 2>&1; then
-        docker rm -f ${containerName} || true
-      fi
+      # 网络与资源准备
+      docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
+
+      # 清理旧容器（保留卷以持久化数据）
+      docker rm -f ${containerName} || true
+      docker rm -f ${dbContainerName} || true
+
+      # 启动 Postgres（卷按分支隔离）
+      docker run -d \
+        --name ${dbContainerName} \
+        --restart unless-stopped \
+        --network ${networkName} \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_DB=appdb \
+        -v ${dbVolumeName}:/var/lib/postgresql/data \
+        postgres:15
+
+      # 等待数据库就绪
+      for i in $(seq 1 30); do
+        if docker exec ${dbContainerName} pg_isready -U postgres -d appdb; then
+          break
+        fi
+        sleep 2
+      done
 
       docker run -d \
         --name ${containerName} \
         --restart unless-stopped \
+        --network ${networkName} \
         -p ${hostPort}:3000 \
         -e NODE_ENV=production \
         -e JWT_SECRET=dev-secret \
-        -e DATA_SOURCE=file \
-        -e DATA_FILE_PATH=/app/data/db.json \
-        -v server-data:/app/data \
+        -e DATA_SOURCE=postgres \
+        -e DATABASE_URL=postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public \
+        -e AUTO_MIGRATE=true \
         ${image_full}
 
       docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
