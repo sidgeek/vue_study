@@ -1,51 +1,75 @@
 node {
-    properties([disableConcurrentBuilds()])
-    def rev_no = ""
-    def image_name = "server"
-    def image_full = ""
-    def container_name = "server-app"
+  properties([disableConcurrentBuilds()])
+  def rev_no = ""
+  def image_name = "server"
+  def image_full = ""
+  def branch_name = ""
 
-    stage('Checkout'){
-        checkout scm
-        rev_no = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-        image_full = "${image_name}:${rev_no}"
-        echo "REV_NO=${rev_no}, IMAGE=${image_full}"
-    }
+  stage('Checkout'){
+    checkout scm
+    rev_no = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
+    // 识别当前构建分支，兼容多种 Jenkins 作业形态
+    branch_name = sh(returnStdout: true, script: '''
+      set -euo pipefail
+      if [ -n "${BRANCH_NAME:-}" ]; then
+        echo "$BRANCH_NAME"
+      elif [ -n "${GIT_BRANCH:-}" ]; then
+        echo "${GIT_BRANCH#origin/}"
+      elif [ -n "${CHANGE_BRANCH:-}" ]; then
+        echo "$CHANGE_BRANCH"  # PR 构建分支
+      else
+        # 从包含当前提交的远端分支推断，取第一个匹配
+        git branch -r --contains HEAD | sed -n '1{s#^ *origin/##;p}'
+      fi
+    ''').trim()
+    image_full = "${image_name}:${branch_name}-${rev_no}"
+    echo "BRANCH=${branch_name}, REV_NO=${rev_no}, IMAGE=${image_full}"
+  }
 
-    stage('Build Image'){
-        // 参考 /11：直接构建与标记镜像（apps/server 作为上下文）
-        sh """
-          set -euo pipefail
-          docker --version
-          docker build -t ${image_full} -f apps/server/Dockerfile --build-arg REV_NO=${rev_no} apps/server
-          docker tag ${image_full} ${image_name}:latest
-        """
-    }
+  stage('Build Image'){
+    // 构建与按分支标记镜像（apps/server 为上下文）
+    sh """
+      set -euo pipefail
+      docker --version
+      docker build -t ${image_full} -f apps/server/Dockerfile --build-arg REV_NO=${rev_no} apps/server
+      docker tag ${image_full} ${image_name}:${branch_name}-latest
+      docker tag ${image_full} ${image_name}:latest
+    """
+  }
 
-    stage('Deploy'){
-        // 停旧容器并以当前提交镜像启动 server 服务
-        sh """
-          set -euo pipefail
-          # 停止并删除旧容器（如果存在）
-          if docker ps -a --format '{{.Names}}' | grep -w ${container_name} >/dev/null 2>&1; then
-            docker rm -f ${container_name} || true
-          fi
+  stage('Deploy'){
+    // 按分支部署：main/dev 固定端口；feat 分支随机端口便于并行测试
+    def safeBranch = branch_name.replaceAll('[^A-Za-z0-9_.-]', '-')
+    def containerName = "server-app-${safeBranch}"
+    def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
 
-          # 使用版本化标签运行新容器，避免 latest 混淆
-          docker run -d \
-            --name ${container_name} \
-            --restart unless-stopped \
-            -p 3000:3000 \
-            -e NODE_ENV=production \
-            -e JWT_SECRET=dev-secret \
-            -e DATA_SOURCE=file \
-            -e DATA_FILE_PATH=/app/data/db.json \
-            -v server-data:/app/data \
-            ${image_full}
+    sh """
+      set -euo pipefail
+      if docker ps -a --format '{{.Names}}' | grep -w ${containerName} >/dev/null 2>&1; then
+        docker rm -f ${containerName} || true
+      fi
 
-          # 简单健康检查与镜像确认
-          docker inspect -f '{{ .Config.Image }}' ${container_name} | grep -q '${image_full}'
-          docker logs --since 5s ${container_name} || true
-        """
-    }
+      docker run -d \
+        --name ${containerName} \
+        --restart unless-stopped \
+        -p ${hostPort}:3000 \
+        -e NODE_ENV=production \
+        -e JWT_SECRET=dev-secret \
+        -e DATA_SOURCE=file \
+        -e DATA_FILE_PATH=/app/data/db.json \
+        -v server-data:/app/data \
+        ${image_full}
+
+      docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
+
+      # 输出可访问地址；feat/* 使用随机端口时解析映射结果
+      if [ "${hostPort}" = "0" ]; then
+        docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"$0}'
+      else
+        echo "Service URL: http://localhost:${hostPort}"
+      fi
+
+      docker logs --since 5s ${containerName} || true
+    """
+  }
 }
