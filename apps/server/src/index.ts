@@ -29,7 +29,7 @@ app.use(requestLogger)
 
 // 基础健康检查
 router.get('/health', (ctx) => {
-  ctx.body = { status: 'ok ya' }
+  ctx.body = { status: 'ok ya ya' }
 })
 
 // OpenAPI 文档 JSON
