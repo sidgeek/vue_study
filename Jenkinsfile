@@ -45,6 +45,7 @@ node {
     def networkName = "net-${safeBranch}"
     def dbVolumeName = "postgres-data-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
+    def dbHostPort = (branch_name == 'main') ? '5432' : (branch_name == 'dev' ? '5433' : '0')
 
     sh """
       set -euo pipefail
@@ -60,6 +61,7 @@ node {
         --name ${dbContainerName} \
         --restart unless-stopped \
         --network ${networkName} \
+        -p ${dbHostPort}:5432 \
         -e POSTGRES_USER=postgres \
         -e POSTGRES_PASSWORD=postgres \
         -e POSTGRES_DB=appdb \
@@ -98,6 +100,15 @@ node {
       """
     } else {
       echo "Service URL: http://localhost:${hostPort}"
+    }
+
+    // 输出数据库连接地址，便于外部客户端连接
+    if (dbHostPort == '0') {
+      sh """
+        docker port ${dbContainerName} 5432 | sed -n '1p' | awk '{print "DB URL: postgresql://postgres:postgres@"\$0"/appdb"}'
+      """
+    } else {
+      echo "DB URL: postgresql://postgres:postgres@localhost:${dbHostPort}/appdb"
     }
   }
 }
