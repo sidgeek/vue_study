@@ -4,11 +4,13 @@ import path from 'path'
 
 type DbShape = {
   seq: number
+  roles: Array<{ id: number; code: string; name: string }>
   users: Array<{
     id: number
     username: string
     passwordHash: string
     name?: string | null
+    roleId: number
     createdAt: string
   }>
 }
@@ -22,7 +24,16 @@ export class UserRepoFile implements UserRepo {
     } catch {
       const dir = path.dirname(this.filePath)
       await fs.mkdir(dir, { recursive: true })
-      const init: DbShape = { seq: 1, users: [] }
+      const init: DbShape = {
+        seq: 1,
+        roles: [
+          { id: 1, code: 'SUPER_ADMIN', name: '超级管理员' },
+          { id: 2, code: 'ADMIN', name: '管理员' },
+          { id: 3, code: 'STAFF', name: '员工' },
+          { id: 4, code: 'VISITOR', name: '访问者' }
+        ],
+        users: []
+      }
       await fs.writeFile(this.filePath, JSON.stringify(init, null, 2), 'utf-8')
     }
   }
@@ -40,13 +51,13 @@ export class UserRepoFile implements UserRepo {
   async findByUsername(username: string): Promise<UserEntity | null> {
     const db = await this.read()
     const u = db.users.find((x) => x.username === username)
-    return u ? { ...u, createdAt: new Date(u.createdAt) } : null
+    return u ? { id: u.id, username: u.username, passwordHash: u.passwordHash, nickname: u.name ?? null, roleId: u.roleId, createdAt: new Date(u.createdAt) } : null
   }
 
   async findById(id: number): Promise<UserEntity | null> {
     const db = await this.read()
     const u = db.users.find((x) => x.id === id)
-    return u ? { ...u, createdAt: new Date(u.createdAt) } : null
+    return u ? { id: u.id, username: u.username, passwordHash: u.passwordHash, nickname: u.name ?? null, roleId: u.roleId, createdAt: new Date(u.createdAt) } : null
   }
 
   async create(data: { username: string; passwordHash: string; nickname?: string | null }): Promise<UserEntity> {
@@ -60,11 +71,12 @@ export class UserRepoFile implements UserRepo {
       username: data.username,
       passwordHash: data.passwordHash,
       name: data.nickname ?? null,
+      roleId: 4, // 默认访客角色
       createdAt: createdAt.toISOString()
     }
     db.users.push(rec)
     await this.write(db)
-    return { ...rec, createdAt }
+    return { id: rec.id, username: rec.username, passwordHash: rec.passwordHash, nickname: rec.name ?? null, roleId: rec.roleId, createdAt }
   }
 
   async list({ page, pageSize }: { page: number; pageSize: number }): Promise<{ items: UserEntity[]; total: number }> {
@@ -76,7 +88,16 @@ export class UserRepoFile implements UserRepo {
       .slice()
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
       .slice(start, start + take)
-    const items = slice.map((u) => ({ ...u, nickname: u.name ?? null, createdAt: new Date(u.createdAt) }))
+    const items = slice.map((u) => ({ id: u.id, username: u.username, passwordHash: u.passwordHash, nickname: u.name ?? null, roleId: u.roleId, createdAt: new Date(u.createdAt) }))
     return { items, total }
+  }
+
+  async updateRole(id: number, roleId: number): Promise<UserEntity> {
+    const db = await this.read()
+    const u = db.users.find((x) => x.id === id)
+    if (!u) throw new Error('User not found')
+    u.roleId = roleId
+    await this.write(db)
+    return { id: u.id, username: u.username, passwordHash: u.passwordHash, nickname: u.name ?? null, roleId: u.roleId, createdAt: new Date(u.createdAt) }
   }
 }
