@@ -59,6 +59,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Monaco.vue'),
         meta: { requiresAuth: true }
       }
+      ,
+      {
+        path: 'perf-stress',
+        name: 'perf-stress',
+        component: () => import('@/views/PerfStress.vue'),
+        meta: { requiresAuth: true }
+      }
     ]
   },
   { path: '/:pathMatch(.*)*', name: '404', component: () => import('@/views/NotFound.vue') }
