@@ -11,7 +11,7 @@ import { openapi } from './config/openapi'
 import { koaSwagger } from 'koa2-swagger-ui'
 import { ensureDefaultRoles } from './config/roles'
 import * as path from 'path'
-import { appendFile, mkdir } from 'fs/promises'
+import { appendFile, mkdir, readFile } from 'fs/promises'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
@@ -106,6 +106,25 @@ router.post('/metrics/webvitals', async (ctx) => {
     console.error('Write web-vitals failed:', err)
     ctx.status = 500
     ctx.body = { message: 'persist failed' }
+  }
+})
+
+// 获取最近的 Web Vitals 记录（轻量查询，无鉴权）
+router.get('/metrics/webvitals/recent', async (ctx) => {
+  const limit = Math.max(1, Math.min(500, Number(ctx.query.limit ?? 200)))
+  try {
+    const dir = path.resolve(process.cwd(), 'data')
+    const file = path.join(dir, 'web-vitals.log')
+    const content = await readFile(file, 'utf-8')
+    const lines = content.split('\n').filter((l) => l.trim().length > 0)
+    const slice = lines.slice(Math.max(0, lines.length - limit))
+    const items = slice.map((l) => {
+      try { return JSON.parse(l) } catch { return null }
+    }).filter(Boolean)
+    ctx.body = { items, total: lines.length }
+  } catch (err) {
+    // 文件不存在或读取失败时返回空集
+    ctx.body = { items: [], total: 0 }
   }
 })
 

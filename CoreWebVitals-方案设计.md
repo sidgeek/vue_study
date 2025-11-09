@@ -179,7 +179,39 @@ model WebVitalsDaily {
 ## 里程碑
 - M1：前端采集模块与初始化完成，后端路由接收成功。
 - M2：入库与基础聚合，提供查询接口。
-- M3：指标仪表盘（后续迭代）。
+- M3：指标仪表盘（本次迭代提前交付）。
+
+## 仪表盘迭代（实时展示）
+为快速洞察最近性能问题，本次迭代在 Admin 前端新增“性能仪表盘”并在后端提供轻量查询接口：
+
+### 后端新增
+- `GET /api/metrics/webvitals/recent?limit=200`：返回最近 N 条原始记录，来源于 `data/web-vitals.log`（文件不存在时返回空集）。
+- 目的：避免首次阶段的数据库依赖，便于快速验证与可视化。
+
+### 前端新增
+- `src/apis/metrics.ts`：封装 `getRecentWebVitals(limit)` 请求与类型。
+- `src/hooks/useWebVitalsFeed.ts`：每 2s 轮询最近记录，在客户端计算 `p50/p75/p95/count`，并输出最新上下文（会话/导航/路由）。
+- `src/components/PerfCard.vue`：通用性能卡片组件，按 `p75` 显示健康度状态（良好/需改进/较差），并展示 `p50/p75/p95/样本量`。
+- `src/views/Dashboard.vue`：仪表盘页面，包含五项核心指标（`LCP/CLS/INP/FCP/TTFB`）的卡片与“最近记录”表格明细。
+
+### 指标显示与阈值
+- 单位规范：`CLS` 为无单位；其余指标统一以秒展示（采集值毫秒→秒）。
+- 阈值（按 p75 判断）：
+  - `LCP` ≤ 2.5 良好；≤ 4 需改进；> 4 较差
+  - `CLS` ≤ 0.1 良好；≤ 0.25 需改进；> 0.25 较差
+  - `INP` ≤ 0.2 良好；≤ 0.5 需改进；> 0.5 较差
+  - `FCP` ≤ 1.8 良好；≤ 3 需改进；> 3 较差
+  - `TTFB` ≤ 0.8 良好；≤ 1.8 需改进；> 1.8 较差
+
+### 使用与验证
+- 本地开发：`pnpm dev`（admin）后访问 `http://localhost:5173/#/dashboard`；每 2s 自动更新统计与明细。
+- Docker 验证：访问 `http://localhost:8080/#/dashboard`；如需在宿主机直接查看日志，建议在 `docker-compose.yml` 为 `server` 增加卷映射 `./data:/app/data`。
+
+### 后续增强（可选）
+- 流式更新：将 `recent` 改造为 SSE 端点，前端通过 `EventSource` 实时接收；或在服务器端维护固定大小的内存环形缓冲避免频繁读文件。
+- 维度过滤与聚合：支持按 `route`/`env`/`appId` 过滤；提供后端 `stats` 接口返回预聚合的 `p50/p75/p95/count`。
+- UI 提示与告警：在仪表盘顶部增加总体状态 HUD；当 p75 趋于“较差”时提供提醒与定位建议。
+
 
 ## 附录：常用命令（pnpm）
 ```bash
