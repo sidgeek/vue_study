@@ -10,13 +10,16 @@
       <p class="desc">以下为最近 {{ limit }} 条记录的统计（p50/p75/p95），每 {{ pollMs/1000 }}s 轮询更新。</p>
     </el-card>
 
-    <div class="grid">
+  <div class="grid">
       <PerfCard name="LCP" :p50="stats.LCP.p50" :p75="stats.LCP.p75" :p95="stats.LCP.p95" :count="stats.LCP.count" />
       <PerfCard name="CLS" :p50="stats.CLS.p50" :p75="stats.CLS.p75" :p95="stats.CLS.p95" :count="stats.CLS.count" />
       <PerfCard name="INP" :p50="stats.INP.p50" :p75="stats.INP.p75" :p95="stats.INP.p95" :count="stats.INP.count" />
       <PerfCard name="FCP" :p50="stats.FCP.p50" :p75="stats.FCP.p75" :p95="stats.FCP.p95" :count="stats.FCP.count" />
       <PerfCard name="TTFB" :p50="stats.TTFB.p50" :p75="stats.TTFB.p75" :p95="stats.TTFB.p95" :count="stats.TTFB.count" />
-    </div>
+  </div>
+
+  <TrendPanel :stats="stats" />
+  <TrendChart :items="items" />
 
     <el-card>
       <template #header>
@@ -44,7 +47,11 @@
         <el-table-column label="时间" width="180">
           <template #default="{ row }">{{ formatTs(row.ts) }}</template>
         </el-table-column>
-        <el-table-column prop="route" label="路由" min-width="160" />
+        <el-table-column label="路由" min-width="160">
+          <template #default="{ row }">
+            {{ (row.route && (row.route.path || row.route.name)) || '—' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="sessionId" label="会话" width="200" />
         <el-table-column prop="navigationId" label="导航" width="100" />
         <el-table-column label="指标数" width="100">
@@ -58,6 +65,8 @@
 
 <script setup lang="ts">
 import PerfCard from '@/components/PerfCard.vue'
+import TrendPanel from '@/components/TrendPanel.vue'
+import TrendChart from '@/components/TrendChart.vue'
 import { useWebVitalsFeed } from '@/hooks/useWebVitalsFeed'
 
 const pollMs = 2000

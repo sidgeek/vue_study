@@ -38,6 +38,10 @@ export function useWebVitalsFeed(pollMs = 2000, limit = 200) {
     try {
       loading.value = true
       const res = await getRecentWebVitals(limit)
+      // 调试：打印最近记录数量与总量，便于确认后端返回
+      if (typeof window !== 'undefined' && (window as any).console) {
+        console.debug('[WebVitals] recent', { count: Array.isArray(res.items) ? res.items.length : 0, total: (res as any).total })
+      }
       items.value = res.items
       error.value = null
     } catch (e: any) {
@@ -77,6 +81,12 @@ export function useWebVitalsFeed(pollMs = 2000, limit = 200) {
   const stats = computed<Record<MetricKey, Summary>>(() => {
     const out = {} as Record<MetricKey, Summary>
     const mv = metricValues.value
+    if (typeof window !== 'undefined' && (window as any).console) {
+      const counts = {
+        CLS: mv.CLS.length, FCP: mv.FCP.length, INP: mv.INP.length, LCP: mv.LCP.length, TTFB: mv.TTFB.length
+      }
+      console.debug('[WebVitals] counts', counts)
+    }
     ;(Object.keys(mv) as MetricKey[]).forEach((k) => {
       out[k] = summarize(mv[k])
     })

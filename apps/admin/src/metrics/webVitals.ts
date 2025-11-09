@@ -13,12 +13,13 @@ type WebVitalMetric = Metric & {
 function send(payload: any) {
   const url = `${BASE}/metrics/webvitals`
   const body = JSON.stringify(payload)
-  // 优先使用 sendBeacon 避免阻塞
-  if (navigator.sendBeacon) {
+  // 开发环境优先使用 fetch，避免某些浏览器对跨域 sendBeacon 的限制
+  const canBeacon = typeof navigator !== 'undefined' && !!navigator.sendBeacon && !import.meta.env.DEV
+  if (canBeacon) {
     const ok = navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
     if (ok) return
   }
-  // 回退到 fetch keepalive
+  // 使用 fetch，上报失败不抛错
   fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => void 0)
 }
 

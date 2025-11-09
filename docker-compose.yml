@@ -37,19 +37,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  admin:
-    container_name: admin-app
-    build:
-      context: ./apps/admin
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE: "http://localhost:3000/api"
-    image: admin:latest
-    ports:
-      - "8080:80"
-    depends_on:
-      - server
-    restart: unless-stopped
+  # admin:
+  #   container_name: admin-app
+  #   build:
+  #     context: ./apps/admin
+  #     dockerfile: Dockerfile
+  #     args:
+  #       VITE_API_BASE: "http://localhost:3000/api"
+  #   image: admin:latest
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - server
+  #   restart: unless-stopped
 
 volumes:
   server-data:
