@@ -2,7 +2,7 @@ node {
   properties([
     disableConcurrentBuilds(),
     parameters([
-      choice(name: 'DB_MODE', choices: ['sqlite', 'postgres'], description: '选择数据库部署模式')
+      choice(name: 'DB_MODE', choices: ['postgres', 'sqlite'], description: '选择数据库部署模式（默认 postgres）')
     ])
   ])
   def rev_no = ""
@@ -48,6 +48,9 @@ node {
     def containerName = "server-app-${safeBranch}"
     def networkName = "net-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
+
+    // 打印params.DB_MODE
+    echo "DB_MODE=${params.DB_MODE}"
 
     if (params.DB_MODE == 'postgres') {
       def dbContainerName = "postgres-db-${safeBranch}"
