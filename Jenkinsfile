@@ -97,6 +97,16 @@ node {
           psql -U postgres -d appdb -v ON_ERROR_STOP=1 -c "CREATE SCHEMA IF NOT EXISTS public;"
         '
 
+        # 再次检查并输出数据库列表，若仍未创建则失败退出
+        docker exec ${dbContainerName} sh -lc '
+          echo "[jenkins] Database list:";
+          psql -U postgres -d postgres -tAc "SELECT datname FROM pg_database ORDER BY 1" | sed "s/^/ - /";
+          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname=\'appdb\'" | grep -q 1; then
+            echo "[jenkins] ERROR: appdb still missing after creation attempt";
+            exit 1;
+          fi
+        '
+
         HOST_PORT="${hostPort}"
         if [ "\$HOST_PORT" = "0" ]; then
           PORT_FLAG="-p 3000"
