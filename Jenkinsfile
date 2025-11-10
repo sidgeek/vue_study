@@ -88,7 +88,7 @@ node {
 
         # 如果命名卷已存在，POSTGRES_DB不会再次创建数据库；这里显式创建
         docker exec ${dbContainerName} sh -lc '
-          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname=\'appdb\'" | grep -q 1; then
+          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='appdb'" | grep -q 1; then
             echo "[jenkins] Creating database appdb...";
             psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"appdb\";";
           else
@@ -101,7 +101,7 @@ node {
         docker exec ${dbContainerName} sh -lc '
           echo "[jenkins] Database list:";
           psql -U postgres -d postgres -tAc "SELECT datname FROM pg_database ORDER BY 1" | sed "s/^/ - /";
-          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname=\'appdb\'" | grep -q 1; then
+          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='appdb'" | grep -q 1; then
             echo "[jenkins] ERROR: appdb still missing after creation attempt";
             exit 1;
           fi
