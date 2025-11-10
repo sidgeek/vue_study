@@ -110,7 +110,10 @@ node {
           ${image_full}
 
         docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
+        # Show recent logs and then run an explicit migrate + seed to ensure tables/data exist
         docker logs --since 5s ${containerName} || true
+        docker exec ${containerName} sh -lc 'npx prisma migrate deploy'
+        docker exec ${containerName} sh -lc 'node scripts/seed.js'
       """
 
       if (hostPort == '0') {
