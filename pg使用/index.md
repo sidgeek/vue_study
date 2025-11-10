@@ -2,26 +2,15 @@
 
 适用于当前项目的 Compose 环境（容器名 `postgres-db`，数据库 `appdb`，用户 `postgres`，密码 `postgres`，端口 `5432`）。
 
-## 启动与健康检查
-- 启动数据库容器：`docker compose up -d postgres`
-- 查看容器状态：`docker ps`
-- 查看日志：`docker logs -n 200 postgres-db`
-- 等待健康检查：`docker inspect -f '{{.State.Health.Status}}' postgres-db`
-
-## 进入容器与连接数据库
-- 进入容器交互终端：`docker exec -it postgres-db sh`（或 `bash`，视镜像是否提供）
-- 容器内连接：`psql -U postgres -d appdb`
-- 宿主机连接（端口映射为 `localhost:5432`）：
-  - `psql -h localhost -U postgres -d appdb`
-  - 一次性免交互密码：`PGPASSWORD=postgres psql -h localhost -U postgres -d appdb -c '\\conninfo'`
-- URI 连接串（CLI/GUI 通用）：`postgresql://postgres:postgres@localhost:5432/appdb`
-
 ## 初始化与执行 SQL 文件
 - 执行单条 SQL：`psql -h localhost -U postgres -d appdb -c 'SELECT 1;'`
 - 执行 `.sql` 文件：`psql -h localhost -U postgres -d appdb -f path/to/file.sql`
 - 创建数据库（示例，当前已存在 `appdb` 可略过）：`CREATE DATABASE appdb;`
 - 创建模式（schema）：`CREATE SCHEMA IF NOT EXISTS public;`
 
+### 查看数据库结构
+  - 列出数据库：`\l`
+  - 进入指定数据库：`\c appdb`
 
 ## 查看结构与元信息（psql 交互模式）
 - 列出所有表：`\dt`
