@@ -73,6 +73,91 @@ router.get('/users', async (ctx) => {
   }
 })
 
+// 告警评估：按照 Core Web Vitals 推荐阈值生成告警
+type WebVitalMetric = { name: string; value: number; rating?: string; id?: string }
+type WebVitalRecord = { ts: number; appId: string; sessionId: string; navigationId: number; route?: any; metrics: WebVitalMetric[] }
+type AlertRecord = {
+  ts: number
+  appId: string
+  sessionId: string
+  navigationId: number
+  route: any
+  metric: string
+  value: number
+  rating?: string
+  severity: 'warn' | 'error'
+  message: string
+}
+
+function evaluateAlerts(record: WebVitalRecord): AlertRecord[] {
+  const out: AlertRecord[] = []
+  for (const m of record.metrics) {
+    const name = m.name as string
+    const rating = (m.rating || '').toLowerCase()
+    const value = Number(m.value)
+    let triggered = false
+    let severity: 'warn' | 'error' = 'warn'
+    switch (name) {
+      case 'LCP':
+        triggered = value >= env.ALERT_LCP_POOR_MS || rating === 'poor'
+        severity = rating === 'poor' || value >= env.ALERT_LCP_POOR_MS ? 'error' : 'warn'
+        break
+      case 'INP':
+        triggered = value >= env.ALERT_INP_POOR_MS || rating === 'poor'
+        severity = rating === 'poor' || value >= env.ALERT_INP_POOR_MS ? 'error' : 'warn'
+        break
+      case 'CLS':
+        triggered = value >= env.ALERT_CLS_POOR || rating === 'poor'
+        severity = rating === 'poor' || value >= env.ALERT_CLS_POOR ? 'error' : 'warn'
+        break
+      case 'TTFB':
+        triggered = value >= env.ALERT_TTFB_POOR_MS
+        severity = value >= env.ALERT_TTFB_POOR_MS ? 'warn' : 'warn'
+        break
+      case 'FCP':
+        triggered = value >= env.ALERT_FCP_POOR_MS
+        severity = value >= env.ALERT_FCP_POOR_MS ? 'warn' : 'warn'
+        break
+      default:
+        triggered = false
+    }
+    if (triggered) {
+      const routeStr = record.route && (record.route.path || record.route.name) || null
+      const msg = `[${name}] ${formatMetric(name, value)} · rating=${rating || 'n/a'} · route=${routeStr || '—'} · session=${record.sessionId}`
+      out.push({
+        ts: record.ts,
+        appId: record.appId,
+        sessionId: record.sessionId,
+        navigationId: record.navigationId,
+        route: record.route || null,
+        metric: name,
+        value,
+        rating,
+        severity,
+        message: msg
+      })
+    }
+  }
+  return out
+}
+
+function formatMetric(name: string, value: number) {
+  if (name === 'CLS') return value.toFixed(3)
+  // 其余均为毫秒
+  return `${(value / 1000).toFixed(2)}s`
+}
+
+async function notifyWebhook(alert: AlertRecord) {
+  if (!env.ALERT_WEBHOOK_URL) return
+  // 兼容 Slack/飞书等入站 webhook，一般接受 {text} 即可
+  const text = `性能告警(${alert.severity}): ${alert.message}`
+  await fetch(env.ALERT_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  }).catch(() => void 0)
+}
+
 // Web Vitals 指标采集上报入口（无鉴权）
 router.post('/metrics/webvitals', async (ctx) => {
   const body = (ctx.request as any).body || {}
@@ -101,6 +186,16 @@ router.post('/metrics/webvitals', async (ctx) => {
     await mkdir(dir, { recursive: true })
     const file = path.join(dir, 'web-vitals.log')
     await appendFile(file, JSON.stringify(record) + '\n')
+
+    // 评估告警并持久化、通知
+    const alerts = evaluateAlerts(record)
+    if (alerts.length) {
+      const afile = path.join(dir, 'web-vitals-alerts.log')
+      for (const a of alerts) {
+        await appendFile(afile, JSON.stringify(a) + '\n')
+        notifyWebhook(a).catch((err) => console.warn('Webhook notify failed:', err?.message || err))
+      }
+    }
     ctx.status = 204
   } catch (err: any) {
     console.error('Write web-vitals failed:', err)
@@ -124,6 +219,22 @@ router.get('/metrics/webvitals/recent', async (ctx) => {
     ctx.body = { items, total: lines.length }
   } catch (err) {
     // 文件不存在或读取失败时返回空集
+    ctx.body = { items: [], total: 0 }
+  }
+})
+
+// 获取最近的告警记录（轻量查询，无鉴权）
+router.get('/metrics/webvitals/alerts/recent', async (ctx) => {
+  const limit = Math.max(1, Math.min(200, Number(ctx.query.limit ?? 50)))
+  try {
+    const dir = path.resolve(process.cwd(), 'data')
+    const file = path.join(dir, 'web-vitals-alerts.log')
+    const content = await readFile(file, 'utf-8')
+    const lines = content.split('\n').filter((l) => l.trim().length > 0)
+    const slice = lines.slice(Math.max(0, lines.length - limit))
+    const items = slice.map((l) => { try { return JSON.parse(l) } catch { return null } }).filter(Boolean)
+    ctx.body = { items, total: lines.length }
+  } catch (err) {
     ctx.body = { items: [], total: 0 }
   }
 })

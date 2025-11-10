@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard">
+    <AlertsList :items="alerts" />
     <el-card class="mb16">
       <template #header>
         <div class="hdr">
@@ -67,11 +68,14 @@
 import PerfCard from '@/components/PerfCard.vue'
 import TrendPanel from '@/components/TrendPanel.vue'
 import TrendChart from '@/components/TrendChart.vue'
+import AlertsList from '@/components/AlertsList.vue'
 import { useWebVitalsFeed } from '@/hooks/useWebVitalsFeed'
+import { useAlertsFeed } from '@/hooks/useAlertsFeed'
 
 const pollMs = 2000
 const limit = 200
 const { items, stats, error, latestContext: latest } = useWebVitalsFeed(pollMs, limit)
+const { items: alerts } = useAlertsFeed(5000, 50)
 
 function formatTs(ts: number) {
   const d = new Date(ts)
