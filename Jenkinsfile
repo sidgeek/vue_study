@@ -79,10 +79,10 @@ node {
           -v ${dbVolumeName}:/var/lib/postgresql/data \
           postgres:15
 
+        set -x
         for i in \$(seq 1 30); do
-          if docker exec ${dbContainerName} pg_isready -U postgres -d appdb; then
-            break
-          fi
+          if docker exec ${dbContainerName} pg_isready -U postgres -d postgres; then
+            echo "[jenkins] Postgres accepting connections"; break; fi
           sleep 2
         done
 
