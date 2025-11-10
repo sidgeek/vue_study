@@ -49,10 +49,18 @@ node {
     def networkName = "net-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
 
-    // 打印params.DB_MODE
-    echo "DB_MODE=${params.DB_MODE}"
+    // 根据 Prisma provider 计算本次有效的 DB_MODE（避免 Jenkins 持久化参数沿用为 sqlite）
+    def prismaProvider = sh(returnStdout: true, script: '''
+      set -euo pipefail
+      sed -n 's/.*provider *= *"\([^"]\+\)".*/\1/p' apps/server/prisma/schema.prisma | sed -n '1p'
+    ''').trim()
+    def dbMode = params.DB_MODE ?: 'postgres'
+    if (prismaProvider == 'postgresql') {
+      dbMode = 'postgres'
+    }
+    echo "Prisma provider=${prismaProvider}, effective DB_MODE=${dbMode} (requested ${params.DB_MODE})"
 
-    if (params.DB_MODE == 'postgres') {
+    if (dbMode == 'postgres') {
       def dbContainerName = "postgres-db-${safeBranch}"
       def dbVolumeName = "postgres-data-${safeBranch}"
       def dbHostPort = (branch_name == 'main') ? '5432' : (branch_name == 'dev' ? '5433' : '0')
