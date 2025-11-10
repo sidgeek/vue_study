@@ -29,15 +29,28 @@ let chart: Chart | null = null
 
 const data = computed(() => buildSeries(props.items, selected.value))
 
+function formatTs(ts: number): string {
+  const d = new Date(ts)
+  const now = new Date()
+  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  if (sameDay) {
+    return d.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  }
+  return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour12: false, hour: '2-digit', minute: '2-digit' })
+}
+
 onMounted(() => {
   if (!mount.value) return
   chart = new Chart({ container: mount.value, autoFit: true, height: 240 })
   chart.options({
     theme: 'classic',
-    tooltip: { shared: true },
-    axes: {
-      value: { title: '值', labelFormatter: (v: number) => String(Number(v).toFixed(2)) },
-      ts: { title: '时间' }
+    tooltip: { shared: true, title: (datum: any) => formatTs(datum?.ts ?? 0) },
+    axis: {
+      y: { title: '值', labelFormatter: (v: number) => String(Number(v).toFixed(2)) },
+      x: { title: '时间', labelFormatter: (v: number | string) => formatTs(Number(v)) }
+    },
+    scale: {
+      x: { formatter: (v: number | string) => formatTs(Number(v)) }
     }
   })
   chart.line().data(data.value).encode('x','ts').encode('y','value').encode('color','metric').style('shape','smooth')
