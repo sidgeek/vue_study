@@ -49,16 +49,9 @@ node {
     def networkName = "net-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
 
-    // 根据 Prisma provider 计算本次有效的 DB_MODE（避免 Jenkins 持久化参数沿用为 sqlite）
-    def prismaProvider = sh(returnStdout: true, script: '''
-      set -euo pipefail
-      sed -n 's/.*provider *= *"\([^"]\+\)".*/\1/p' apps/server/prisma/schema.prisma | sed -n '1p'
-    ''').trim()
-    def dbMode = params.DB_MODE ?: 'postgres'
-    if (prismaProvider == 'postgresql') {
-      dbMode = 'postgres'
-    }
-    echo "Prisma provider=${prismaProvider}, effective DB_MODE=${dbMode} (requested ${params.DB_MODE})"
+    // 直接写死本次有效的 DB_MODE，优先保障 Postgres 路径
+    def dbMode = 'postgres'
+    echo "Effective DB_MODE=${dbMode} (requested ${params.DB_MODE})"
 
     if (dbMode == 'postgres') {
       def dbContainerName = "postgres-db-${safeBranch}"
