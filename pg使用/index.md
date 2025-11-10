@@ -3,12 +3,12 @@
 适用于当前项目的 Compose 环境（容器名 `postgres-db`，数据库 `appdb`，用户 `postgres`，密码 `postgres`，端口 `5432`）。
 
 ## 初始化与执行 SQL 文件
-- 执行单条 SQL：`psql -h localhost -U postgres -d appdb -c 'SELECT 1;'`
+- 进入pg：`psql -h localhost -U postgres -d appdb`
 - 执行 `.sql` 文件：`psql -h localhost -U postgres -d appdb -f path/to/file.sql`
 - 创建数据库（示例，当前已存在 `appdb` 可略过）：`CREATE DATABASE appdb;`
 - 创建模式（schema）：`CREATE SCHEMA IF NOT EXISTS public;`
 
-### 查看数据库结构
+### 查看数据库信息
   - 列出数据库：`\l`
   - 进入指定数据库：`\c appdb`
 
