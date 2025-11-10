@@ -1,5 +1,10 @@
 node {
-  properties([disableConcurrentBuilds()])
+  properties([
+    disableConcurrentBuilds(),
+    parameters([
+      choice(name: 'DB_MODE', choices: ['sqlite', 'postgres'], description: '选择数据库部署模式')
+    ])
+  ])
   def rev_no = ""
   def image_name = "server"
   def image_full = ""
@@ -38,77 +43,128 @@ node {
   }
 
   stage('Deploy'){
-    // 按分支部署：main/dev 固定端口；feat 分支随机端口便于并行测试
+    // 支持 SQLite/Postgres 两种部署
     def safeBranch = branch_name.replaceAll('[^A-Za-z0-9_.-]', '-')
     def containerName = "server-app-${safeBranch}"
-    def dbContainerName = "postgres-db-${safeBranch}"
     def networkName = "net-${safeBranch}"
-    def dbVolumeName = "postgres-data-${safeBranch}"
     def hostPort = (branch_name == 'main') ? '3000' : (branch_name == 'dev' ? '3001' : '0')
-    def dbHostPort = (branch_name == 'main') ? '5432' : (branch_name == 'dev' ? '5433' : '0')
 
-    sh """
-      set -euo pipefail
-      # 网络与资源准备
-      docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
+    if (params.DB_MODE == 'postgres') {
+      def dbContainerName = "postgres-db-${safeBranch}"
+      def dbVolumeName = "postgres-data-${safeBranch}"
+      def dbHostPort = (branch_name == 'main') ? '5432' : (branch_name == 'dev' ? '5433' : '0')
 
-      # 清理旧容器（保留卷以持久化数据）
-      docker rm -f ${containerName} || true
-      docker rm -f ${dbContainerName} || true
+      sh """
+        set -euo pipefail
+        docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
 
-      # 启动 Postgres（卷按分支隔离）
-      docker run -d \
-        --name ${dbContainerName} \
-        --restart unless-stopped \
-        --network ${networkName} \
-        -p ${dbHostPort}:5432 \
-        -e POSTGRES_USER=postgres \
-        -e POSTGRES_PASSWORD=postgres \
-        -e POSTGRES_DB=appdb \
-        -v ${dbVolumeName}:/var/lib/postgresql/data \
-        postgres:15
+        docker rm -f ${containerName} || true
+        docker rm -f ${dbContainerName} || true
 
-      # 等待数据库就绪
-      for i in \$(seq 1 30); do
-        if docker exec ${dbContainerName} pg_isready -U postgres -d appdb; then
-          break
+        docker run -d \
+          --name ${dbContainerName} \
+          --restart unless-stopped \
+          --network ${networkName} \
+          -p ${dbHostPort}:5432 \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_DB=appdb \
+          -v ${dbVolumeName}:/var/lib/postgresql/data \
+          postgres:15
+
+        for i in \$(seq 1 30); do
+          if docker exec ${dbContainerName} pg_isready -U postgres -d appdb; then
+            break
+          fi
+          sleep 2
+        done
+
+        HOST_PORT="${hostPort}"
+        if [ "$HOST_PORT" = "0" ]; then
+          PORT_FLAG="-p 3000"
+        else
+          PORT_FLAG="-p ${hostPort}:3000"
         fi
-        sleep 2
-      done
 
-      docker run -d \
-        --name ${containerName} \
-        --restart unless-stopped \
-        --network ${networkName} \
-        -p ${hostPort}:3000 \
-        -e NODE_ENV=production \
-        -e JWT_SECRET=dev-secret \
-        -e DATA_SOURCE=postgres \
-        -e DATABASE_URL=postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public \
-        -e AUTO_MIGRATE=true \
-        ${image_full}
+        docker run -d \
+          --name ${containerName} \
+          --restart unless-stopped \
+          --network ${networkName} \
+          ${'$'}PORT_FLAG \
+          -e NODE_ENV=production \
+          -e JWT_SECRET=dev-secret \
+          -e DATABASE_URL=postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public \
+          -e AUTO_MIGRATE=false \
+          ${image_full}
 
-      docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
+        docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
 
-      docker logs --since 5s ${containerName} || true
-    """
-
-    // 输出可访问地址；feat/* 使用随机端口时解析映射结果（在 Groovy 侧做条件判断，避免 GString 与 Shell 的 $ 冲突）
-    if (hostPort == '0') {
-      sh """
-        docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"\$0}'
+        # 切换为 Postgres schema 并生成 Client 后执行 db push + seed
+        docker exec ${containerName} sh -lc 'cp prisma/schema.postgres.prisma prisma/schema.prisma'
+        docker exec ${containerName} sh -lc 'node ./node_modules/prisma/build/index.js generate'
+        docker exec ${containerName} sh -lc 'node ./node_modules/prisma/build/index.js db push --skip-generate'
+        docker exec ${containerName} sh -lc 'node scripts/seed.js'
+        docker logs --since 5s ${containerName} || true
       """
-    } else {
-      echo "Service URL: http://localhost:${hostPort}"
-    }
 
-    // 输出数据库连接地址，便于外部客户端连接
-    if (dbHostPort == '0') {
-      sh """
-        docker port ${dbContainerName} 5432 | sed -n '1p' | awk '{print "DB URL: postgresql://postgres:postgres@"\$0"/appdb"}'
-      """
+      if (hostPort == '0') {
+        sh """
+          docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"\$0}'
+        """
+      } else {
+        echo "Service URL: http://localhost:${hostPort}"
+      }
+
+      if (dbHostPort == '0') {
+        sh """
+          docker port ${dbContainerName} 5432 | sed -n '1p' | awk '{print "DB URL: postgresql://postgres:postgres@"\$0"/appdb"}'
+        """
+      } else {
+        echo "DB URL: postgresql://postgres:postgres@localhost:${dbHostPort}/appdb"
+      }
     } else {
-      echo "DB URL: postgresql://postgres:postgres@localhost:${dbHostPort}/appdb"
+      def dataVolumeName = "server-dev-data-${safeBranch}"
+
+      sh """
+        set -euo pipefail
+        docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
+
+        docker rm -f ${containerName} || true
+
+        HOST_PORT="${hostPort}"
+        if [ "$HOST_PORT" = "0" ]; then
+          PORT_FLAG="-p 3000"
+        else
+          PORT_FLAG="-p ${hostPort}:3000"
+        fi
+
+        docker run -d \
+          --name ${containerName} \
+          --restart unless-stopped \
+          --network ${networkName} \
+          ${'$'}PORT_FLAG \
+          -e NODE_ENV=production \
+          -e JWT_SECRET=dev-secret \
+          -e DATABASE_URL=file:/app/dev-data/dev.db \
+          -e AUTO_MIGRATE=false \
+          -v ${dataVolumeName}:/app/dev-data \
+          ${image_full}
+
+        docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
+
+        docker exec ${containerName} sh -lc 'npx prisma db push --skip-generate'
+        docker exec ${containerName} sh -lc 'node scripts/seed.js'
+        docker logs --since 5s ${containerName} || true
+      """
+
+      if (hostPort == '0') {
+        sh """
+          docker port ${containerName} 3000 | sed -n '1p' | awk '{print "Feature branch URL: http://"\$0}'
+        """
+      } else {
+        echo "Service URL: http://localhost:${hostPort}"
+      }
+      echo "DB: SQLite file persisted in Docker volume '${dataVolumeName}'"
     }
   }
 }

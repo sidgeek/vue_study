@@ -41,14 +41,20 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
+# Copy Prisma schema and scripts required for runtime db push/seed
+COPY prisma ./prisma
+COPY scripts ./scripts
+
 # Defaults (override via `-e` when running)
 ENV PORT=3000 \
-    JWT_SECRET=change-me-in-.env \
-    DATA_SOURCE=file \
-    DATA_FILE_PATH=/app/data/db.json
+    JWT_SECRET=change-me-in-.env
 
 # Persist file-mode data outside the container filesystem
-VOLUME ["/app/data"]
+# Default SQLite DB path (can be overridden by DATABASE_URL)
+# Use a dedicated dir to allow external volume mount
+ENV DATABASE_URL="file:/app/dev-data/dev.db"
+
+VOLUME ["/app/dev-data"]
 
 EXPOSE 3000
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
