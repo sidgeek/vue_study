@@ -61,11 +61,18 @@ node {
         docker rm -f ${containerName} || true
         docker rm -f ${dbContainerName} || true
 
+        DB_HOST_PORT="${dbHostPort}"
+        if [ "\$DB_HOST_PORT" = "0" ]; then
+          DB_PORT_FLAG=""
+        else
+          DB_PORT_FLAG="-p ${dbHostPort}:5432"
+        fi
+
         docker run -d \
           --name ${dbContainerName} \
           --restart unless-stopped \
           --network ${networkName} \
-          -p ${dbHostPort}:5432 \
+          ${'$'}DB_PORT_FLAG \
           -e POSTGRES_USER=postgres \
           -e POSTGRES_PASSWORD=postgres \
           -e POSTGRES_DB=appdb \
@@ -78,6 +85,17 @@ node {
           fi
           sleep 2
         done
+
+        # 如果命名卷已存在，POSTGRES_DB不会再次创建数据库；这里显式创建
+        docker exec ${dbContainerName} sh -lc '
+          if ! psql -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname=\'appdb\'" | grep -q 1; then
+            echo "[jenkins] Creating database appdb...";
+            psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE \"appdb\";";
+          else
+            echo "[jenkins] Database appdb already exists.";
+          fi
+          psql -U postgres -d appdb -v ON_ERROR_STOP=1 -c "CREATE SCHEMA IF NOT EXISTS public;"
+        '
 
         HOST_PORT="${hostPort}"
         if [ "\$HOST_PORT" = "0" ]; then
