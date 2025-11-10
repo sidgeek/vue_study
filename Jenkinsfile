@@ -36,7 +36,7 @@ node {
     sh """
       set -euo pipefail
       docker --version
-      docker build -t ${image_full} -f apps/server/Dockerfile --build-arg REV_NO=${rev_no} apps/server
+      docker build -t ${image_full} -f apps/server/Dockerfile apps/server
       docker tag ${image_full} ${image_name}:${branch_name}-latest
       docker tag ${image_full} ${image_name}:latest
     """
@@ -80,7 +80,7 @@ node {
         done
 
         HOST_PORT="${hostPort}"
-        if [ "$HOST_PORT" = "0" ]; then
+        if [ "\$HOST_PORT" = "0" ]; then
           PORT_FLAG="-p 3000"
         else
           PORT_FLAG="-p ${hostPort}:3000"
@@ -93,17 +93,12 @@ node {
           ${'$'}PORT_FLAG \
           -e NODE_ENV=production \
           -e JWT_SECRET=dev-secret \
+          -e DATA_SOURCE=postgres \
           -e DATABASE_URL=postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public \
-          -e AUTO_MIGRATE=false \
+          -e AUTO_MIGRATE=true \
           ${image_full}
 
         docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
-
-        # 切换为 Postgres schema 并生成 Client 后执行 db push + seed
-        docker exec ${containerName} sh -lc 'cp prisma/schema.postgres.prisma prisma/schema.prisma'
-        docker exec ${containerName} sh -lc 'node ./node_modules/prisma/build/index.js generate'
-        docker exec ${containerName} sh -lc 'node ./node_modules/prisma/build/index.js db push --skip-generate'
-        docker exec ${containerName} sh -lc 'node scripts/seed.js'
         docker logs --since 5s ${containerName} || true
       """
 
@@ -132,7 +127,7 @@ node {
         docker rm -f ${containerName} || true
 
         HOST_PORT="${hostPort}"
-        if [ "$HOST_PORT" = "0" ]; then
+        if [ "\$HOST_PORT" = "0" ]; then
           PORT_FLAG="-p 3000"
         else
           PORT_FLAG="-p ${hostPort}:3000"
@@ -145,6 +140,7 @@ node {
           ${'$'}PORT_FLAG \
           -e NODE_ENV=production \
           -e JWT_SECRET=dev-secret \
+          -e DATA_SOURCE=file \
           -e DATABASE_URL=file:/app/dev-data/dev.db \
           -e AUTO_MIGRATE=false \
           -v ${dataVolumeName}:/app/dev-data \
