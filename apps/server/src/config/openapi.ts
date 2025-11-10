@@ -3,7 +3,7 @@ export const openapi = {
   info: {
     title: 'Cloud Editor API',
     version: '0.1.0',
-    description: '基于 Koa 的本地开发 API 文档（file 模式）'
+    description: '基于 Koa + Prisma (SQLite) 的本地开发 API 文档'
   },
   servers: [
     { url: '/api', description: '本地开发（相对路径）' }
