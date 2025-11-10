@@ -47,14 +47,8 @@ COPY scripts ./scripts
 
 # Defaults (override via `-e` when running)
 ENV PORT=3000 \
-    JWT_SECRET=change-me-in-.env
-
-# Persist file-mode data outside the container filesystem
-# Default SQLite DB path (can be overridden by DATABASE_URL)
-# Use a dedicated dir to allow external volume mount
-ENV DATABASE_URL="file:/app/dev-data/dev.db"
-
-VOLUME ["/app/dev-data"]
+    JWT_SECRET=change-me-in-.env \
+    DATA_SOURCE=postgres
 
 EXPOSE 3000
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
