@@ -94,11 +94,13 @@ node {
         """).trim()
       }
 
-      echo "Building admin image with VITE_API_BASE=http://localhost:${effectiveServerPort}"
+      // 为线上环境（main 分支）固定 API 地址，其它分支使用后端实际端口
+      def adminApiBase = (branch_name == 'main') ? 'http://106.54.186.241:3000' : "http://localhost:${effectiveServerPort}"
+      echo "Building admin image with VITE_API_BASE=${adminApiBase}"
       sh """
         set -euo pipefail
         docker build -t ${adminImage} -f apps/admin/Dockerfile apps/admin \
-          --build-arg VITE_API_BASE=http://localhost:${effectiveServerPort}
+          --build-arg VITE_API_BASE=${adminApiBase}
         docker tag ${adminImage} admin:${branch_name}-latest
       """
 
