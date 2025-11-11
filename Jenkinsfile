@@ -108,7 +108,7 @@ node {
         docker rm -f ${adminContainerName} || true
         if [ "${adminHostPort}" = "0" ]; then
           docker run -d --name ${adminContainerName} --restart unless-stopped --network ${networkName} -p 80 ${adminImage}
-          docker port ${adminContainerName} 80 | sed -n '1p' | awk '{print "Admin URL: http://"$0}'
+          docker port ${adminContainerName} 80 | sed -n '1p' | awk '{print "Admin URL: http://"\$0}'
         else
           docker run -d --name ${adminContainerName} --restart unless-stopped --network ${networkName} -p ${adminHostPort}:80 ${adminImage}
           echo "Admin URL: http://localhost:${adminHostPort}"
