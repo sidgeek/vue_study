@@ -83,7 +83,7 @@ node {
       // ---- Build & Deploy Admin (Nginx) ----
       def adminImage = "admin:${branch_name}-${rev_no}"
       def adminContainerName = "admin-app-${safeBranch}"
-      def adminHostPort = (branch_name == 'main') ? '8080' : (branch_name == 'dev' ? '8081' : '0')
+      def adminHostPort = (branch_name == 'main') ? '80' : (branch_name == 'dev' ? '3006' : '0')
 
       // Resolve effective server port (feature branches may use random host port)
       def effectiveServerPort = hostPort
