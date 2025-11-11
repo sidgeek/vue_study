@@ -89,6 +89,22 @@ docker inspect -f '{{ .Config.Image }}' "$containerName" | grep -q "$image_full"
 # Show recent logs and run explicit migrations + seed
 docker logs --since 5s "$containerName" || true
 docker exec "$containerName" sh -lc 'npx prisma migrate deploy'
-docker exec "$containerName" sh -lc 'node scripts/seed.js'
+
+# Conditionally seed only when the User table is empty (first-time init)
+echo "[deploy] Checking if seeding is required..."
+TABLE_EXISTS=$(docker exec "$dbContainerName" sh -lc 'psql -U postgres -d appdb -tAc "SELECT to_regclass(\"\"User\"\") IS NOT NULL"' | tr -d '[:space:]' || true)
+if [ "$TABLE_EXISTS" = "t" ]; then
+  USER_COUNT=$(docker exec "$dbContainerName" sh -lc 'psql -U postgres -d appdb -tAc "SELECT COUNT(*) FROM \"User\""' | tr -d '[:space:]' || echo 0)
+else
+  USER_COUNT=0
+fi
+
+if [ "$USER_COUNT" = "0" ]; then
+  echo "[deploy] User table empty; running seed script."
+  docker exec "$containerName" sh -lc 'node scripts/seed.js'
+else
+  echo "[deploy] User table has $USER_COUNT rows; skip seed to preserve data."
+fi
 
 echo "[deploy] Completed Postgres deployment for container: $containerName"
+

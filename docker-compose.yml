@@ -54,3 +54,5 @@ services:
 volumes:
   server-data:
   postgres-data:
+    external: true
+    name: postgres-data
