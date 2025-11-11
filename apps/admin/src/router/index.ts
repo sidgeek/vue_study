@@ -66,6 +66,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/PerfStress.vue'),
         meta: { requiresAuth: true }
       }
+      ,
+      {
+        path: 'xss-lab',
+        name: 'xss-lab',
+        component: () => import('@/views/XSSLab.vue'),
+        meta: { public: true }
+      }
     ]
   },
   { path: '/:pathMatch(.*)*', name: '404', component: () => import('@/views/NotFound.vue') }
