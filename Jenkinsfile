@@ -84,35 +84,8 @@ node {
 
       sh """
         set -euo pipefail
-        docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
-
-        docker rm -f ${containerName} || true
-
-        HOST_PORT="${hostPort}"
-        if [ "\$HOST_PORT" = "0" ]; then
-          PORT_FLAG="-p 3000"
-        else
-          PORT_FLAG="-p ${hostPort}:3000"
-        fi
-
-        docker run -d \
-          --name ${containerName} \
-          --restart unless-stopped \
-          --network ${networkName} \
-          ${'$'}PORT_FLAG \
-          -e NODE_ENV=production \
-          -e JWT_SECRET=dev-secret \
-          -e DATA_SOURCE=file \
-          -e DATABASE_URL=file:/app/dev-data/dev.db \
-          -e AUTO_MIGRATE=false \
-          -v ${dataVolumeName}:/app/dev-data \
-          ${image_full}
-
-        docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
-
-        docker exec ${containerName} sh -lc 'npx prisma db push --skip-generate'
-        docker exec ${containerName} sh -lc 'node scripts/seed.js'
-        docker logs --since 5s ${containerName} || true
+        chmod +x scripts/deploy_sqlite.sh || true
+        bash scripts/deploy_sqlite.sh '${containerName}' '${image_full}' '${networkName}' '${hostPort}' '${dataVolumeName}'
       """
 
       if (hostPort == '0') {

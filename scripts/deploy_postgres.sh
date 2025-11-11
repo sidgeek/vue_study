@@ -54,6 +54,14 @@ for i in $(seq 1 30); do
 done
 set +x
 
+# Ensure target database exists (idempotent)
+if ! docker exec "$dbContainerName" sh -lc "psql -U postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='appdb'\" | grep -q 1"; then
+  echo "[deploy] Creating database 'appdb'"
+  docker exec "$dbContainerName" sh -lc "createdb -U postgres appdb"
+else
+  echo "[deploy] Database 'appdb' already exists"
+fi
+
 # Map app port: if hostPort==0, let Docker choose random host port but still expose 3000
 if [ "$hostPort" = "0" ]; then
   PORT_FLAG="-p 3000"
