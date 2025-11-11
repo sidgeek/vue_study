@@ -60,7 +60,8 @@ node {
 
       sh """
         set -euo pipefail
-        ./scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
+        chmod +x scripts/deploy_postgres.sh || true
+        bash scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
       """
 
       if (hostPort == '0') {
