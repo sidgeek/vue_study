@@ -90,7 +90,7 @@ node {
       if (hostPort == '0') {
         effectiveServerPort = sh(returnStdout: true, script: """
           set -euo pipefail
-          docker port ${containerName} 3000 | sed -n '1p' | awk -F: '{print $2}'
+          docker port ${containerName} 3000 | sed -n '1p' | awk -F: '{print \$2}'
         """).trim()
       }
 
