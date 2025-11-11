@@ -60,7 +60,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { listUsers } from '@/apis/users'
 import { register } from '@/apis/auth'
 import { ElMessage } from 'element-plus'
@@ -72,6 +73,8 @@ const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const usernameFilter = ref('')
+const route = useRoute()
+const router = useRouter()
 
 async function fetchData() {
   const res = await listUsers(page.value, pageSize.value, usernameFilter.value)
@@ -79,11 +82,34 @@ async function fetchData() {
   total.value = res.total
 }
 
-function onPageChange(p: number) { page.value = p; fetchData() }
-function onSizeChange(s: number) { pageSize.value = s; page.value = 1; fetchData() }
-function onSearch() { page.value = 1; fetchData() }
+function applyQuery() {
+  const q: Record<string, any> = {
+    page: page.value,
+    pageSize: page.value ? pageSize.value : undefined,
+    username: usernameFilter.value || undefined
+  }
+  // 清理 undefined，避免出现多余的键
+  Object.keys(q).forEach((k) => q[k] === undefined && delete (q as any)[k])
+  router.replace({ name: 'users', query: q })
+}
 
-onMounted(fetchData)
+function restoreFromQuery() {
+  const qp = Number(route.query.page || 1)
+  const qs = Number(route.query.pageSize || 10)
+  const qu = String(route.query.username || '')
+  page.value = isFinite(qp) && qp > 0 ? qp : 1
+  pageSize.value = isFinite(qs) && qs > 0 ? qs : 10
+  usernameFilter.value = qu
+}
+
+function onPageChange(p: number) { page.value = p; applyQuery(); fetchData() }
+function onSizeChange(s: number) { pageSize.value = s; page.value = 1; applyQuery(); fetchData() }
+function onSearch() { page.value = 1; applyQuery(); fetchData() }
+
+onMounted(() => { restoreFromQuery(); fetchData() })
+
+// 当用户手动修改地址栏或通过浏览器前进/后退导致 query 变化时，同步状态并拉取数据
+watch(() => route.query, () => { restoreFromQuery(); fetchData() })
 
 const showCreate = ref(false)
 const creating = ref(false)
