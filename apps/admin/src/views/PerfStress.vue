@@ -62,12 +62,35 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 
 // 控制开关：默认开启，进入页面即可看到明显问题
 const enableLCP = ref(true)
 const enableCLS = ref(true)
 const enableINP = ref(true)
+
+// 开关持久化：localStorage
+const STORAGE_KEY = 'perf-stress-switches'
+function restoreSwitches() {
+  try {
+    if (typeof window === 'undefined') return
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return
+    const data = JSON.parse(raw)
+    if (typeof data?.LCP === 'boolean') enableLCP.value = data.LCP
+    if (typeof data?.CLS === 'boolean') enableCLS.value = data.CLS
+    if (typeof data?.INP === 'boolean') enableINP.value = data.INP
+  } catch { /* noop */ }
+}
+function saveSwitches() {
+  try {
+    if (typeof window === 'undefined') return
+    const payload = { LCP: enableLCP.value, CLS: enableCLS.value, INP: enableINP.value }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+  } catch { /* noop */ }
+}
+// 初始化时恢复用户选择
+restoreSwitches()
 
 // 延迟触发的标志位
 const showBanner = ref(false)
@@ -86,6 +109,13 @@ onMounted(() => {
   setTimeout(() => { if (enableLCP.value) renderBigList.value = true }, 800)
   setTimeout(() => { if (enableLCP.value) loadBigImage.value = true }, 1000)
 })
+
+// 侦听开关变化并持久化
+watch([enableLCP, enableCLS, enableINP], () => {
+  // 使用微队列合并同一渲染帧内的多次切换
+  queueMicrotask(saveSwitches)
+}, { immediate: true })
+
 
 function block(ms: number) {
   const end = performance.now() + ms
