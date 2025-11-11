@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, ref, computed } from 'vue'
-import { getRecentWebVitals, type WebVitalRecord, type WebVitalMetric } from '@/apis/metrics'
+import { getRecentWebVitals, type WebVitalRecord } from '@/apis/metrics'
 
 export type MetricKey = 'CLS' | 'FCP' | 'INP' | 'LCP' | 'TTFB'
 
