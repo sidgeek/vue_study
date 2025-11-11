@@ -13,7 +13,7 @@
         <el-menu-item index="home">首页</el-menu-item>
         <el-menu-item index="dashboard">仪表盘</el-menu-item>
         <el-menu-item index="analysis">分析</el-menu-item>
-        <el-menu-item index="users">用户管理</el-menu-item>
+        <el-menu-item v-if="canManageUsers" index="users">用户管理</el-menu-item>
         <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
         <el-menu-item index="slate">Slate</el-menu-item>
         <el-menu-item index="monaco-editor">Monaco</el-menu-item>
@@ -38,6 +38,7 @@ const auth = useAuthStore()
 
 const active = computed(() => (route.name?.toString() || 'home'))
 const displayName = computed(() => auth.name || '未登录')
+const canManageUsers = computed(() => ['ADMIN','SUPER_ADMIN'].includes(auth.roleCode || 'VISITOR'))
 
 function onSelect(index: string) {
   if (index === 'home') router.push({ name: 'home' })

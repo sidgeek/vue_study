@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
         path: 'users',
         name: 'users',
         component: () => import('@/views/Users.vue'),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'] }
       }
       ,
       {
@@ -88,6 +88,15 @@ router.beforeEach((to) => {
   if (to.meta.public) return true
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+  // 若路由要求特定角色，则进行前端拦截（需登录后获取到 roleCode）
+  const roles = (to.meta as any)?.roles as string[] | undefined
+  if (roles && roles.length) {
+    const roleCode = (auth as any).roleCode || 'VISITOR'
+    if (!roles.includes(roleCode)) {
+      // 无权限时返回首页或提示
+      return { name: 'home' }
+    }
   }
   return true
 })

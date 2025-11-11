@@ -14,6 +14,17 @@ async function request(path: string, init: RequestInit = {}) {
   const url = `${BASE}${path}`
   const headers = new Headers(init.headers || {})
   if (!headers.has('Accept')) headers.set('Accept', 'application/json')
+  // 自动附加 Authorization 令牌（若已登录）
+  try {
+    const raw = localStorage.getItem('auth')
+    if (raw) {
+      const data = JSON.parse(raw)
+      const token = data?.token
+      if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`)
+      }
+    }
+  } catch {}
   const res = await fetch(url, { ...init, headers })
   const text = await res.text()
   let data: any = null

@@ -42,7 +42,7 @@ router.get('/openapi.json', (ctx) => {
 })
 
 // 认证路由
-const auth = buildAuthRouter(repo, env.JWT_SECRET)
+const auth = buildAuthRouter(repo, env.JWT_SECRET, prisma)
 router.use('/auth', auth.routes(), auth.allowedMethods())
 
 // 示例受保护路由
@@ -54,12 +54,59 @@ router.get('/me', verifyJwt, async (ctx) => {
     ctx.body = { message: 'User not found' }
     return
   }
+  // 查询角色代码（若 Role 模型可用）
+  let roleCode: string | null = null
+  const roleModel = (prisma as any)?.role
+  if (roleModel && typeof roleModel.findUnique === 'function') {
+    try {
+      const r = await roleModel.findUnique({ where: { id: (user as any).roleId } })
+      roleCode = (r && r.code) || null
+    } catch {}
+  }
   // 仅返回非敏感信息，并将 name 统一为 nickname
-  ctx.body = { id: user.id, username: user.username, nickname: user.nickname ?? null, roleId: (user as any).roleId }
+  ctx.body = {
+    id: user.id,
+    username: user.username,
+    nickname: user.nickname ?? null,
+    roleId: (user as any).roleId,
+    roleCode: roleCode || 'VISITOR'
+  }
 })
 
+// 简单角色校验中间件：要求用户具备任一指定角色代码
+function requireRoleCodes(codes: string[]) {
+  return async (ctx: any, next: any) => {
+    const userId = Number(ctx.state.user?.sub || 0)
+    if (!userId) {
+      ctx.status = 401
+      ctx.body = { message: '未授权' }
+      return
+    }
+    const user = await repo.findById(userId)
+    if (!user) {
+      ctx.status = 401
+      ctx.body = { message: '未授权' }
+      return
+    }
+    const roleModel = (prisma as any)?.role
+    let code: string | null = null
+    if (roleModel && typeof roleModel.findUnique === 'function') {
+      try {
+        const r = await roleModel.findUnique({ where: { id: (user as any).roleId } })
+        code = (r && r.code) || null
+      } catch {}
+    }
+    if (!code || !codes.includes(code)) {
+      ctx.status = 403
+      ctx.body = { message: '禁止访问：需要管理员权限' }
+      return
+    }
+    return next()
+  }
+}
+
 // 用户列表（分页）
-router.get('/users', async (ctx) => {
+router.get('/users', verifyJwt, requireRoleCodes(['ADMIN', 'SUPER_ADMIN']), async (ctx) => {
   const page = Number(ctx.query.page ?? 1)
   const pageSize = Number(ctx.query.pageSize ?? 10)
   const username = String(ctx.query.username || '').trim() || undefined
@@ -241,7 +288,7 @@ router.get('/metrics/webvitals/alerts/recent', async (ctx) => {
 })
 
 // 为用户分配角色（简单版）
-router.post('/users/:id/role', async (ctx) => {
+router.post('/users/:id/role', verifyJwt, requireRoleCodes(['ADMIN', 'SUPER_ADMIN']), async (ctx) => {
   const id = Number(ctx.params.id)
   const { roleId, roleCode } = (ctx.request as any).body || {}
   let targetRoleId = Number(roleId) || 0

@@ -2,9 +2,20 @@ import Router from '@koa/router'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { UserRepo } from '../repos/UserRepo'
+import type { PrismaClient } from '@prisma/client'
 
-export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
+export function buildAuthRouter(repo: UserRepo, jwtSecret: string, prisma?: PrismaClient) {
   const router = new Router()
+
+  async function getRoleCodeByUserId(userId: number): Promise<string | null> {
+    if (!prisma) return null
+    try {
+      const u = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } })
+      return (u && (u as any).role && (u as any).role.code) || null
+    } catch {
+      return null
+    }
+  }
 
   // 注册
   router.post('/register', async (ctx) => {
@@ -27,8 +38,8 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
 
     const passwordHash = bcrypt.hashSync(password, 10)
     const user = await repo.create({ username, passwordHash, nickname: username })
-
-    ctx.body = { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId }
+    const roleCode = await getRoleCodeByUserId(user.id)
+    ctx.body = { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId, roleCode: roleCode || 'VISITOR' }
   })
 
   // 登录
@@ -55,9 +66,10 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string) {
       jwtSecret,
       { expiresIn: '7d' }
     )
+    const roleCode = await getRoleCodeByUserId(user.id)
     ctx.body = {
       token,
-      user: { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId }
+      user: { id: user.id, username: user.username, nickname: user.nickname, roleId: (user as any).roleId, roleCode: roleCode || 'VISITOR' }
     }
   })
 

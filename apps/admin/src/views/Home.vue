@@ -35,7 +35,13 @@
       </el-col>
 
       <el-col :span="12">
-        <Users />
+        <Users v-if="canManageUsers" />
+        <el-card v-else shadow="never">
+          <template #header>
+            <div class="card-header">用户管理</div>
+          </template>
+          <el-empty description="权限不足，无法查看用户列表" />
+        </el-card>
       </el-col>
     </el-row>
 
@@ -54,6 +60,13 @@ import Analysis from '@/views/Analysis.vue'
 import Users from '@/views/Users.vue'
 import G6Dagre from '@/views/G6Dagre.vue'
 import PerfStress from '@/views/PerfStress.vue'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+auth.restore()
+console.log('>>> roleCode', auth.roleCode)
+const canManageUsers = computed(() => ['ADMIN','SUPER_ADMIN'].includes(auth.roleCode || 'VISITOR'))
 </script>
 
 <style scoped>
