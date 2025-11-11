@@ -79,6 +79,41 @@ node {
       } else {
         echo "DB URL: postgresql://postgres:postgres@localhost:${dbHostPort}/appdb"
       }
+
+      // ---- Build & Deploy Admin (Nginx) ----
+      def adminImage = "admin:${branch_name}-${rev_no}"
+      def adminContainerName = "admin-app-${safeBranch}"
+      def adminHostPort = (branch_name == 'main') ? '8080' : (branch_name == 'dev' ? '8081' : '0')
+
+      // Resolve effective server port (feature branches may use random host port)
+      def effectiveServerPort = hostPort
+      if (hostPort == '0') {
+        effectiveServerPort = sh(returnStdout: true, script: """
+          set -euo pipefail
+          docker port ${containerName} 3000 | sed -n '1p' | awk -F: '{print $2}'
+        """).trim()
+      }
+
+      echo "Building admin image with VITE_API_BASE=http://localhost:${effectiveServerPort}"
+      sh """
+        set -euo pipefail
+        docker build -t ${adminImage} -f apps/admin/Dockerfile apps/admin \
+          --build-arg VITE_API_BASE=http://localhost:${effectiveServerPort}
+        docker tag ${adminImage} admin:${branch_name}-latest
+      """
+
+      // Run admin container
+      sh """
+        set -euo pipefail
+        docker rm -f ${adminContainerName} || true
+        if [ "${adminHostPort}" = "0" ]; then
+          docker run -d --name ${adminContainerName} --restart unless-stopped --network ${networkName} -p 80 ${adminImage}
+          docker port ${adminContainerName} 80 | sed -n '1p' | awk '{print "Admin URL: http://"$0}'
+        else
+          docker run -d --name ${adminContainerName} --restart unless-stopped --network ${networkName} -p ${adminHostPort}:80 ${adminImage}
+          echo "Admin URL: http://localhost:${adminHostPort}"
+        fi
+      """
     } else {
       def dataVolumeName = "server-dev-data-${safeBranch}"
 
