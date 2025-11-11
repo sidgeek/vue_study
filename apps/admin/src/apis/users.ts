@@ -14,7 +14,9 @@ export type UserListResponse = {
   totalPages: number
 }
 
-export async function listUsers(page = 1, pageSize = 10) {
-  const q = new URLSearchParams({ page: String(page), pageSize: String(pageSize) })
+export async function listUsers(page = 1, pageSize = 10, username?: string) {
+  const params: Record<string, string> = { page: String(page), pageSize: String(pageSize) }
+  if (username && username.trim()) params.username = username.trim()
+  const q = new URLSearchParams(params)
   return getJson<UserListResponse>(`/users?${q.toString()}`)
 }

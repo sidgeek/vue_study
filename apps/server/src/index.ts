@@ -62,7 +62,8 @@ router.get('/me', verifyJwt, async (ctx) => {
 router.get('/users', async (ctx) => {
   const page = Number(ctx.query.page ?? 1)
   const pageSize = Number(ctx.query.pageSize ?? 10)
-  const { items, total } = await repo.list({ page, pageSize })
+  const username = String(ctx.query.username || '').trim() || undefined
+  const { items, total } = await repo.list({ page, pageSize, username })
   const safeItems = items.map((u) => ({ id: u.id, username: u.username, nickname: (u as any).nickname ?? (u as any).name ?? null, roleId: (u as any).roleId }))
   ctx.body = {
     items: safeItems,

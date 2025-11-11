@@ -185,6 +185,8 @@ export const openapi = {
         parameters: [
           { name: 'page', in: 'query', required: false, schema: { type: 'integer', default: 1, minimum: 1 } },
           { name: 'pageSize', in: 'query', required: false, schema: { type: 'integer', default: 10, minimum: 1, maximum: 100 } }
+          ,
+          { name: 'username', in: 'query', required: false, schema: { type: 'string', description: '按用户名模糊匹配' } }
         ],
         responses: {
           '200': {

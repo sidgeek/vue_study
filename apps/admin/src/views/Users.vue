@@ -1,7 +1,19 @@
 <template>
   <div class="users-page">
     <div class="toolbar">
-      <el-button type="primary" @click="showCreate = true">新增用户</el-button>
+      <div class="left">
+        <el-input
+          v-model="usernameFilter"
+          placeholder="按用户名过滤"
+          clearable
+          style="width: 240px"
+          @keyup.enter="onSearch"
+        />
+        <el-button type="primary" @click="onSearch">搜索</el-button>
+      </div>
+      <div class="right">
+        <el-button type="primary" @click="showCreate = true">新增用户</el-button>
+      </div>
     </div>
 
     <el-card>
@@ -59,15 +71,17 @@ const users = ref<U[]>([])
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const usernameFilter = ref('')
 
 async function fetchData() {
-  const res = await listUsers(page.value, pageSize.value)
+  const res = await listUsers(page.value, pageSize.value, usernameFilter.value)
   users.value = res.items
   total.value = res.total
 }
 
 function onPageChange(p: number) { page.value = p; fetchData() }
 function onSizeChange(s: number) { pageSize.value = s; page.value = 1; fetchData() }
+function onSearch() { page.value = 1; fetchData() }
 
 onMounted(fetchData)
 

@@ -11,8 +11,8 @@ export class UserRepoPrisma implements UserRepo {
           id: u.id,
           username: u.username,
           passwordHash: u.passwordHash,
-          nickname: (u as any).nickname ?? (u as any).name ?? null,
-          roleId: (u as any).roleId ?? (u as any).role_id ?? 0,
+          nickname: u.nickname ?? null,
+          roleId: u.roleId,
           createdAt: u.createdAt
         }
       : null
@@ -25,8 +25,8 @@ export class UserRepoPrisma implements UserRepo {
           id: u.id,
           username: u.username,
           passwordHash: u.passwordHash,
-          nickname: (u as any).nickname ?? (u as any).name ?? null,
-          roleId: (u as any).roleId ?? (u as any).role_id ?? 0,
+          nickname: u.nickname ?? null,
+          roleId: u.roleId,
           createdAt: u.createdAt
         }
       : null
@@ -34,7 +34,7 @@ export class UserRepoPrisma implements UserRepo {
 
   async create(data: { username: string; passwordHash: string; nickname?: string | null }): Promise<UserEntity> {
     // 默认分配为访客角色（code = 'VISITOR'），在未生成 Role 模型类型时优雅降级
-    const roleModel = (this.prisma as any).role
+    const roleModel = (this.prisma).role
     let visitorId = 0
     if (roleModel && typeof roleModel.upsert === 'function') {
       const visitor = await roleModel.upsert({
@@ -45,46 +45,45 @@ export class UserRepoPrisma implements UserRepo {
       visitorId = (visitor && visitor.id) || 0
     }
     const u = await this.prisma.user.create({
-      data: { username: data.username, passwordHash: data.passwordHash, nickname: data.nickname ?? null, roleId: visitorId } as any
+      data: { username: data.username, passwordHash: data.passwordHash, nickname: data.nickname ?? null, roleId: visitorId }
     })
     return {
       id: u.id,
       username: u.username,
       passwordHash: u.passwordHash,
-      nickname: (u as any).nickname ?? (u as any).name ?? null,
-      roleId: (u as any).roleId ?? (u as any).role_id ?? visitorId,
+      nickname: u.nickname ?? null,
+      roleId: u.roleId ?? visitorId,
       createdAt: u.createdAt
     }
   }
 
-  async list({ page, pageSize }: { page: number; pageSize: number }): Promise<{ items: UserEntity[]; total: number }> {
+  async list({ page, pageSize, username }: { page: number; pageSize: number; username?: string }): Promise<{ items: UserEntity[]; total: number }> {
     const take = Math.max(1, Math.min(100, pageSize))
     const skip = Math.max(0, (Math.max(1, page) - 1) * take)
+    const where = username ? { username: { contains: username } } : undefined
     const [itemsRaw, total] = await Promise.all([
-      this.prisma.user.findMany({ skip, take, orderBy: { createdAt: 'desc' } }),
-      this.prisma.user.count()
+      this.prisma.user.findMany({ skip, take, where, orderBy: { createdAt: 'desc' } }),
+      this.prisma.user.count({ where })
     ])
-    type DbUser = { id: number; username: string; passwordHash: string; nickname?: string | null; name?: string | null; createdAt: Date }
-    const rows = itemsRaw as DbUser[]
-    const items: UserEntity[] = rows.map((u: DbUser): UserEntity => ({
+    const items: UserEntity[] = itemsRaw.map((u): UserEntity => ({
       id: u.id,
       username: u.username,
       passwordHash: u.passwordHash,
-      nickname: (u as any).nickname ?? (u as any).name ?? null,
-      roleId: (u as any).roleId ?? (u as any).role_id ?? 0,
+      nickname: u.nickname ?? null,
+      roleId: u.roleId,
       createdAt: u.createdAt
     }))
     return { items, total }
   }
 
   async updateRole(id: number, roleId: number): Promise<UserEntity> {
-    const u = await this.prisma.user.update({ where: { id }, data: { roleId } as any })
+    const u = await this.prisma.user.update({ where: { id }, data: { roleId } })
     return {
       id: u.id,
       username: u.username,
       passwordHash: u.passwordHash,
-      nickname: (u as any).nickname ?? (u as any).name ?? null,
-      roleId: (u as any).roleId ?? roleId,
+      nickname: u.nickname ?? null,
+      roleId: u.roleId ?? roleId,
       createdAt: u.createdAt
     }
   }
