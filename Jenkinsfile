@@ -60,60 +60,7 @@ node {
 
       sh """
         set -euo pipefail
-        docker network inspect ${networkName} >/dev/null 2>&1 || docker network create ${networkName}
-
-        docker rm -f ${containerName} || true
-        docker rm -f ${dbContainerName} || true
-
-        DB_HOST_PORT="${dbHostPort}"
-        if [ "\$DB_HOST_PORT" = "0" ]; then
-          DB_PORT_FLAG=""
-        else
-          DB_PORT_FLAG="-p ${dbHostPort}:5432"
-        fi
-
-        docker run -d \
-          --name ${dbContainerName} \
-          --restart unless-stopped \
-          --network ${networkName} \
-          ${'$'}DB_PORT_FLAG \
-          -e POSTGRES_USER=postgres \
-          -e POSTGRES_PASSWORD=postgres \
-          -e POSTGRES_DB=appdb \
-          -v ${dbVolumeName}:/var/lib/postgresql/data \
-          postgres:15
-
-        set -x
-        for i in \$(seq 1 30); do
-          if docker exec ${dbContainerName} pg_isready -U postgres -d postgres; then
-            echo "[jenkins] Postgres accepting connections"; break; fi
-          sleep 2
-        done
-
-        HOST_PORT="${hostPort}"
-        if [ "\$HOST_PORT" = "0" ]; then
-          PORT_FLAG="-p 3000"
-        else
-          PORT_FLAG="-p ${hostPort}:3000"
-        fi
-
-        docker run -d \
-          --name ${containerName} \
-          --restart unless-stopped \
-          --network ${networkName} \
-          ${'$'}PORT_FLAG \
-          -e NODE_ENV=production \
-          -e JWT_SECRET=dev-secret \
-          -e DATA_SOURCE=postgres \
-          -e DATABASE_URL=postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public \
-          -e AUTO_MIGRATE=true \
-          ${image_full}
-
-        docker inspect -f '{{ .Config.Image }}' ${containerName} | grep -q '${image_full}'
-        # Show recent logs and then run an explicit migrate + seed to ensure tables/data exist
-        docker logs --since 5s ${containerName} || true
-        docker exec ${containerName} sh -lc 'npx prisma migrate deploy'
-        docker exec ${containerName} sh -lc 'node scripts/seed.js'
+        ./scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
       """
 
       if (hostPort == '0') {
