@@ -34,6 +34,17 @@ export const openapi = {
           user: { $ref: '#/components/schemas/User' }
         },
         required: ['token', 'user']
+      },
+      Song: {
+        type: 'object',
+        properties: {
+          key: { type: 'string' },
+          name: { type: 'string' },
+          size: { type: 'integer' },
+          lastModified: { type: 'string' },
+          url: { type: 'string' }
+        },
+        required: ['key', 'name']
       }
     }
   },
@@ -237,6 +248,28 @@ export const openapi = {
             content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } }
           },
           '400': { description: '请求参数非法或角色不存在' }
+        }
+      }
+    }
+    ,
+    '/songs': {
+      get: {
+        summary: '歌曲列表',
+        responses: {
+          '200': {
+            description: '获取成功',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: { type: 'array', items: { $ref: '#/components/schemas/Song' } }
+                  },
+                  required: ['items']
+                }
+              }
+            }
+          }
         }
       }
     }

@@ -25,13 +25,19 @@ services:
       context: ./apps/server
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-dev-secret}
       - DATA_SOURCE=postgres
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/appdb?schema=public
-      - AUTO_MIGRATE=false
+      - AUTO_MIGRATE=true
+    env_file:
+      - ./apps/server/.env
+    volumes:
+      - ./apps/server/docker-entrypoint.sh:/app/docker-entrypoint.sh:ro
+      - ./apps/server/prisma:/app/prisma:ro
+      - ./apps/server/dist:/app/dist:ro
     depends_on:
       postgres:
         condition: service_healthy

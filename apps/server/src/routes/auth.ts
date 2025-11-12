@@ -10,7 +10,7 @@ export function buildAuthRouter(repo: UserRepo, jwtSecret: string, prisma?: Pris
   async function getRoleCodeByUserId(userId: number): Promise<string | null> {
     if (!prisma) return null
     try {
-      const u = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } })
+      const u = await (prisma as any).user.findUnique({ where: { id: userId }, include: { role: true } })
       return (u && (u as any).role && (u as any).role.code) || null
     } catch {
       return null

@@ -7,7 +7,7 @@ RUN apk add --no-cache openssl
 
 # Install dependencies (incl. dev)
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Generate Prisma Client (safe even if DATABASE_URL is not set)
 COPY prisma ./prisma
@@ -30,7 +30,7 @@ ENV NODE_ENV=production
 
 # Install production dependencies
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy build output
 COPY --from=builder /app/dist ./dist

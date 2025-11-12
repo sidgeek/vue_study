@@ -12,6 +12,7 @@ import { koaSwagger } from 'koa2-swagger-ui'
 import { ensureDefaultRoles } from './config/roles'
 import * as path from 'path'
 import { appendFile, mkdir, readFile } from 'fs/promises'
+import { buildSongsRouter } from './routes/songs'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
@@ -44,6 +45,10 @@ router.get('/openapi.json', (ctx) => {
 // 认证路由
 const auth = buildAuthRouter(repo, env.JWT_SECRET, prisma)
 router.use('/auth', auth.routes(), auth.allowedMethods())
+
+// 歌曲路由
+const songs = buildSongsRouter()
+router.use('/songs', songs.routes(), songs.allowedMethods())
 
 // 示例受保护路由
 router.get('/me', verifyJwt, async (ctx) => {
@@ -199,7 +204,7 @@ async function notifyWebhook(alert: AlertRecord) {
   if (!env.ALERT_WEBHOOK_URL) return
   // 兼容 Slack/飞书等入站 webhook，一般接受 {text} 即可
   const text = `性能告警(${alert.severity}): ${alert.message}`
-  await fetch(env.ALERT_WEBHOOK_URL, {
+  await (globalThis as any).fetch(env.ALERT_WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text })

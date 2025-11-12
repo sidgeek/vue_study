@@ -13,5 +13,13 @@ export const env = {
   ALERT_INP_POOR_MS: parseInt(process.env.ALERT_INP_POOR_MS || '500', 10),
   ALERT_CLS_POOR: parseFloat(process.env.ALERT_CLS_POOR || '0.25'),
   ALERT_TTFB_POOR_MS: parseInt(process.env.ALERT_TTFB_POOR_MS || '800', 10),
-  ALERT_FCP_POOR_MS: parseInt(process.env.ALERT_FCP_POOR_MS || '3000', 10)
+  ALERT_FCP_POOR_MS: parseInt(process.env.ALERT_FCP_POOR_MS || '3000', 10),
+
+  // cos 相关配置
+  COS_SECRET_ID: process.env.COS_SECRET_ID || '',
+  COS_SECRET_KEY: process.env.COS_SECRET_KEY || '',
+  COS_BUCKET: process.env.COS_BUCKET || '',
+  COS_REGION: process.env.COS_REGION || '',
+  COS_SONGS_PREFIX: process.env.COS_SONGS_PREFIX || '',
+  COS_SIGN_EXPIRE_SECONDS: parseInt(process.env.COS_SIGN_EXPIRE_SECONDS || '3600', 10)
 }
