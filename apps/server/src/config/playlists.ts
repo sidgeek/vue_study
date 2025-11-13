@@ -2,7 +2,9 @@ import type { PrismaClient } from '@prisma/client'
 import { listSongs } from '../services/cos'
 
 export async function ensureDefaultPlaylists(prisma: PrismaClient) {
+  console.log('ensureDefaultPlaylists start')
   const count = await prisma.playlist.count()
+  console.log('playlist count', count)
   if (count > 0) return
   const items = await listSongs()
   const songs = items.slice(0, 50)
