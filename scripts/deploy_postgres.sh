@@ -94,6 +94,9 @@ docker run -d \
   -e COS_SIGN_EXPIRE_SECONDS \
   "$image_full"
 
+# Show COS env presence (masked)
+docker exec "$containerName" sh -lc 'echo "[deploy] COS env: id=${COS_SECRET_ID:+set} key=${COS_SECRET_KEY:+set} bucket=${COS_BUCKET:-} region=${COS_REGION:-} prefix=${COS_SONGS_PREFIX:-} expire=${COS_SIGN_EXPIRE_SECONDS:-}"'
+
 # Verify image matches
 docker inspect -f '{{ .Config.Image }}' "$containerName" | grep -q "$image_full" || {
   echo "Container image verification failed" >&2; exit 1; }
