@@ -50,7 +50,7 @@ ENV PORT=3000 \
     JWT_SECRET=change-me-in-.env \
     DATA_SOURCE=postgres
 
-EXPOSE 3000
+EXPOSE 3000 5556
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 CMD ["sh", "./docker-entrypoint.sh"]

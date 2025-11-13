@@ -26,6 +26,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3001:3000"
+      - "5556:5556"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-dev-secret}

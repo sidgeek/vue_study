@@ -71,6 +71,7 @@ node {
       } else {
         echo "Service URL: http://localhost:${hostPort}"
       }
+      echo "Prisma Studio URL: http://localhost:5556"
 
       if (dbHostPort == '0') {
         sh """
@@ -132,6 +133,7 @@ node {
       } else {
         echo "Service URL: http://localhost:${hostPort}"
       }
+      echo "Prisma Studio URL: http://localhost:5556"
       echo "DB: SQLite file persisted in Docker volume '${dataVolumeName}'"
     }
   }

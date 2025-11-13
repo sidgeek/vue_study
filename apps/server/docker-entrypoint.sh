@@ -36,5 +36,23 @@ else
   echo "[entrypoint] AUTO_MIGRATE is disabled; skipping migrations."
 fi
 
+# ---- Launch Prisma Studio (optional, default on) ----
+PRISMA_STUDIO_ENABLE=${PRISMA_STUDIO_ENABLE:-true}
+PRISMA_STUDIO_PORT=${PRISMA_STUDIO_PORT:-5556}
+if [ "$PRISMA_STUDIO_ENABLE" = "true" ]; then
+  echo "[entrypoint] Starting Prisma Studio on port ${PRISMA_STUDIO_PORT}..."
+  if [ -x "/usr/bin/npx" ] || [ -x "/usr/local/bin/npx" ] || [ -x "/bin/npx" ]; then
+    (npx prisma studio --port "${PRISMA_STUDIO_PORT}" --browser none >/dev/null 2>&1 &)
+  else
+    if [ -f "./node_modules/prisma/build/index.js" ]; then
+      (node ./node_modules/prisma/build/index.js studio --port "${PRISMA_STUDIO_PORT}" --browser none >/dev/null 2>&1 &)
+    else
+      echo "[entrypoint] Prisma CLI not available; Prisma Studio will not start."
+    fi
+  fi
+else
+  echo "[entrypoint] Prisma Studio disabled."
+fi
+
 echo "[entrypoint] Launching API server..."
 exec node dist/index.js

@@ -18,6 +18,7 @@ COPY src ./src
 # You can override VITE_API_BASE via build args
 ARG VITE_API_BASE
 ENV VITE_API_BASE=${VITE_API_BASE}
+ENV NODE_OPTIONS=--max-old-space-size=2048
 RUN npm run build
 
 

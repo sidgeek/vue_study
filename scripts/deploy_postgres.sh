@@ -69,17 +69,23 @@ else
   PORT_FLAG="-p ${hostPort}:3000"
 fi
 
+# Always map Prisma Studio port 5556 on host
+STUDIO_PORT_FLAG="-p 5556:5556"
+
 # Start application
 docker run -d \
   --name "$containerName" \
   --restart unless-stopped \
   --network "$networkName" \
   ${PORT_FLAG} \
+  ${STUDIO_PORT_FLAG} \
   -e NODE_ENV=production \
   -e JWT_SECRET=dev-secret \
   -e DATA_SOURCE=postgres \
   -e DATABASE_URL="postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public" \
   -e AUTO_MIGRATE=true \
+  -e PRISMA_STUDIO_ENABLE=true \
+  -e PRISMA_STUDIO_PORT=5556 \
   "$image_full"
 
 # Verify image matches
