@@ -273,5 +273,59 @@ export const openapi = {
         }
       }
     }
+    ,
+    '/playlists': {
+      get: {
+        summary: '歌单列表',
+        responses: {
+          '200': {
+            description: '获取成功',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: { code: { type: 'string' }, name: { type: 'string' }, description: { type: 'string', nullable: true } },
+                        required: ['code', 'name']
+                      }
+                    }
+                  },
+                  required: ['items']
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    ,
+    '/playlists/{code}': {
+      get: {
+        summary: '歌单详情',
+        parameters: [ { name: 'code', in: 'path', required: true, schema: { type: 'string' } } ],
+        responses: {
+          '200': {
+            description: '获取成功',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    playlist: { type: 'object', properties: { code: { type: 'string' }, name: { type: 'string' }, description: { type: 'string', nullable: true } }, required: ['code', 'name'] },
+                    items: { type: 'array', items: { $ref: '#/components/schemas/Song' } }
+                  },
+                  required: ['playlist', 'items']
+                }
+              }
+            }
+          },
+          '404': { description: '歌单不存在' }
+        }
+      }
+    }
   }
 }

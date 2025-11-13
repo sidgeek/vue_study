@@ -23,3 +23,33 @@ model Role {
   name      String
   users     User[]
 }
+
+model Song {
+  id           Int      @id @default(autoincrement())
+  key          String   @unique
+  name         String
+  size         Int      @default(0)
+  lastModified DateTime?
+  createdAt    DateTime @default(now())
+  items        PlaylistItem[]
+}
+
+model Playlist {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  description String?
+  createdAt DateTime @default(now())
+  items     PlaylistItem[]
+}
+
+model PlaylistItem {
+  id         Int      @id @default(autoincrement())
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  playlistId Int
+  song       Song     @relation(fields: [songId], references: [id])
+  songId     Int
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  @@unique([playlistId, songId])
+}

@@ -13,6 +13,8 @@ import { ensureDefaultRoles } from './config/roles'
 import * as path from 'path'
 import { appendFile, mkdir, readFile } from 'fs/promises'
 import { buildSongsRouter } from './routes/songs'
+import { buildPlaylistsRouter } from './routes/playlists'
+import { ensureDefaultPlaylists } from './config/playlists'
 
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
@@ -46,9 +48,10 @@ router.get('/openapi.json', (ctx) => {
 const auth = buildAuthRouter(repo, env.JWT_SECRET, prisma)
 router.use('/auth', auth.routes(), auth.allowedMethods())
 
-// 歌曲路由
 const songs = buildSongsRouter()
 router.use('/songs', songs.routes(), songs.allowedMethods())
+const playlists = buildPlaylistsRouter(prisma)
+router.use('/playlists', playlists.routes(), playlists.allowedMethods())
 
 // 示例受保护路由
 router.get('/me', verifyJwt, async (ctx) => {
@@ -336,6 +339,7 @@ app.use(
 
 // 确保 Prisma 模式下默认角色存在
   ensureDefaultRoles(prisma).catch((err) => console.error('Ensure roles failed', err))
+  ensureDefaultPlaylists(prisma).catch((err) => console.error('Ensure playlists failed', err))
 
   app.listen(env.PORT, () => {
     console.log(`API server listening on http://localhost:${env.PORT}`)

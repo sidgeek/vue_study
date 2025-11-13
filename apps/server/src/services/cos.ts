@@ -50,7 +50,7 @@ function getSignedUrl(cos: COS, key: string): Promise<string> {
 }
 
 export async function listSongs(): Promise<SongItem[]> {
-  console.log('listSongs', env.COS_BUCKET, env.COS_REGION, env.COS_SECRET_ID, env.COS_SECRET_KEY)
+  console.log('listSongs', env.COS_BUCKET, env.COS_REGION)
   if (!env.COS_BUCKET || !env.COS_REGION || !env.COS_SECRET_ID || !env.COS_SECRET_KEY) {
     return []
   }
@@ -68,5 +68,17 @@ export async function listSongs(): Promise<SongItem[]> {
     }))
   } catch {
     return []
+  }
+}
+
+export async function signUrl(key: string): Promise<string> {
+  if (!env.COS_BUCKET || !env.COS_REGION || !env.COS_SECRET_ID || !env.COS_SECRET_KEY) {
+    return ''
+  }
+  const cos = getClient()
+  try {
+    return await getSignedUrl(cos, key)
+  } catch {
+    return ''
   }
 }
