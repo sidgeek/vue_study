@@ -2,7 +2,11 @@ node {
   properties([
     disableConcurrentBuilds(),
     parameters([
-      choice(name: 'DB_MODE', choices: ['postgres', 'sqlite'], description: '选择数据库部署模式（默认 postgres）')
+      choice(name: 'DB_MODE', choices: ['postgres', 'sqlite'], description: '选择数据库部署模式（默认 postgres）'),
+      string(name: 'COS_BUCKET', defaultValue: 'music-1312857193', description: 'COS Bucket（非敏感配置，可覆盖）'),
+      string(name: 'COS_REGION', defaultValue: 'ap-shanghai', description: 'COS Region（非敏感配置，可覆盖）'),
+      string(name: 'COS_SONGS_PREFIX', defaultValue: 'music/', description: 'COS 前缀（非敏感配置，可覆盖）'),
+      string(name: 'COS_SIGN_EXPIRE_SECONDS', defaultValue: '3600', description: '签名有效期（秒）')
     ])
   ])
   def rev_no = ""
@@ -58,11 +62,17 @@ node {
       def dbVolumeName = "postgres-data-${safeBranch}"
       def dbHostPort = (branch_name == 'main') ? '5432' : (branch_name == 'dev' ? '5433' : '0')
 
-      sh """
-        set -euo pipefail
-        chmod +x scripts/deploy_postgres.sh || true
-        bash scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
-      """
+      withCredentials([
+        string(credentialsId: 'cos-secret-id', variable: 'COS_SECRET_ID'),
+        string(credentialsId: 'cos-secret-key', variable: 'COS_SECRET_KEY')
+      ]) {
+        sh """
+          set -euo pipefail
+          chmod +x scripts/deploy_postgres.sh || true
+          COS_BUCKET='${params.COS_BUCKET}' COS_REGION='${params.COS_REGION}' COS_SONGS_PREFIX='${params.COS_SONGS_PREFIX}' COS_SIGN_EXPIRE_SECONDS='${params.COS_SIGN_EXPIRE_SECONDS}' \\
+          bash scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
+        """
+      }
 
       if (hostPort == '0') {
         sh """
@@ -71,7 +81,6 @@ node {
       } else {
         echo "Service URL: http://localhost:${hostPort}"
       }
-      echo "Prisma Studio URL: http://localhost:5556"
 
       if (dbHostPort == '0') {
         sh """

@@ -86,6 +86,12 @@ docker run -d \
   -e AUTO_MIGRATE=true \
   -e PRISMA_STUDIO_ENABLE=true \
   -e PRISMA_STUDIO_PORT=5556 \
+  -e COS_SECRET_ID \
+  -e COS_SECRET_KEY \
+  -e COS_BUCKET \
+  -e COS_REGION \
+  -e COS_SONGS_PREFIX \
+  -e COS_SIGN_EXPIRE_SECONDS \
   "$image_full"
 
 # Verify image matches
