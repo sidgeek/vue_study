@@ -33,7 +33,7 @@ const routes: RouteRecordRaw[] = [
         path: 'analysis',
         name: 'analysis',
         component: () => import('@/views/Analysis.vue'),
-        meta: { requiresAuth: true }
+        meta: { public: true }
       }
       ,
       {
@@ -54,28 +54,28 @@ const routes: RouteRecordRaw[] = [
         path: 'g6-dagre',
         name: 'g6-dagre',
         component: () => import('@/views/G6Dagre.vue'),
-        meta: { requiresAuth: true }
+        meta: { public: true }
       }
       ,
       {
         path: 'slate',
         name: 'slate',
         component: () => import('@/views/Slate.vue'),
-        meta: { requiresAuth: true }
+        meta: { public: true }
       }
       ,
       {
         path: 'monaco-editor',
         name: 'monaco-editor',
         component: () => import('@/views/Monaco.vue'),
-        meta: { requiresAuth: true }
+        meta: { public: true }
       }
       ,
       {
         path: 'perf-stress',
         name: 'perf-stress',
         component: () => import('@/views/PerfStress.vue'),
-        meta: { requiresAuth: true }
+        meta: { public: true }
       }
       ,
       {
