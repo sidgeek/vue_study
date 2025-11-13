@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+const ADMIN_OFFLINE = String(import.meta.env.VITE_ADMIN_OFFLINE ?? '').toLowerCase()
+  .replace(/\s+/g, '')
+  .split(',')
+  .some((v) => v === '1' || v === 'true' || v === 'yes' || v === 'on')
 
 const routes: RouteRecordRaw[] = [
   {
@@ -29,6 +33,13 @@ const routes: RouteRecordRaw[] = [
         path: 'analysis',
         name: 'analysis',
         component: () => import('@/views/Analysis.vue'),
+        meta: { requiresAuth: true }
+      }
+      ,
+      {
+        path: 'echarts',
+        name: 'echarts',
+        component: () => import('@/views/ECharts.vue'),
         meta: { requiresAuth: true }
       }
       ,
@@ -86,6 +97,16 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.public) return true
+  if (ADMIN_OFFLINE) {
+    const roles = (to.meta as any)?.roles as string[] | undefined
+    if (roles && roles.length) {
+      const roleCode = (auth as any).roleCode || 'VISITOR'
+      if (!roles.includes(roleCode)) {
+        return { name: 'home' }
+      }
+    }
+    return true
+  }
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }

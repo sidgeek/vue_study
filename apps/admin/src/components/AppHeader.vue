@@ -13,6 +13,7 @@
         <el-menu-item index="home">首页</el-menu-item>
         <el-menu-item index="dashboard">仪表盘</el-menu-item>
         <el-menu-item index="analysis">分析</el-menu-item>
+        <el-menu-item index="echarts">ECharts</el-menu-item>
         <el-menu-item v-if="canManageUsers" index="users">用户管理</el-menu-item>
         <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
         <el-menu-item index="slate">Slate</el-menu-item>
@@ -44,6 +45,7 @@ function onSelect(index: string) {
   if (index === 'home') router.push({ name: 'home' })
   if (index === 'dashboard') router.push({ name: 'dashboard' })
   if (index === 'analysis') router.push({ name: 'analysis' })
+  if (index === 'echarts') router.push({ name: 'echarts' })
   if (index === 'users') router.push({ name: 'users' })
   if (index === 'g6-dagre') router.push({ name: 'g6-dagre' })
   if (index === 'slate') router.push({ name: 'slate' })

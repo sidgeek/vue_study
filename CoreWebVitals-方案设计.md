@@ -22,13 +22,19 @@
 ### 依赖
 - `web-vitals`（采集库，小体积，基于 PerformanceObserver）
 
+已实现：已在 `apps/admin/package.json` 安装并使用 `web-vitals`，采集封装位于 `apps/admin/src/metrics/*`，并在应用入口初始化。
+
 ### 新增模块与文件
 - `src/metrics/config.ts`：上报地址、采样率、应用 ID/版本、开关。
 - `src/metrics/session.ts`：生成与维护 `sessionId`，管理 `navigationId`（路由变更递增），收集 UA/viewport/network 等上下文。
 - `src/metrics/webVitals.ts`：对 `web-vitals` 封装，统一初始化与上报，支持 `reportAllChanges` 与去抖合并。
 
+已实现：上述三个模块均已落地（路径一致），并与路由联动采集导航上下文。
+
 ### 初始化位置
 - 在 `src/main.ts` 调用 `initWebVitalsCollector(router)` 一次；在 `router.afterEach` 中递增 `navigationId` 与记录 `routeName/path`。
+
+已实现：`apps/admin/src/main.ts:13-18` 完成初始化；`apps/admin/src/metrics/session.ts:29-33` 已在 `router.afterEach` 更新导航上下文。
 
 ### 采集策略
 - 启用回调：`onINP`、`onLCP`、`onCLS`、`onFID`、`onTTFB`。
@@ -40,9 +46,13 @@
 - 首选 `navigator.sendBeacon(url, blob)`，后备 `fetch(url, { method: 'POST', body, keepalive: true, headers })`。
 - 失败不重试，避免在卸载/后台状态增加干扰；可在后续引入队列与采样重试。
 
+已实现：`apps/admin/src/metrics/webVitals.ts:18-25` 兼容 Beacon 与 fetch；失败不抛错。
+
 ### 采样与限流
 - 采样率：默认 10%（`VITE_METRICS_SAMPLE_RATE=0.1`），白名单页面（如首页、Dashboard）可强制全量。
 - 客户端限流：同一 `metric.id` 在同一 `navigationId` 下多次更新，仅在 `rating` 变化或时间窗口（如 5s）内保留最后一次。
+
+已实现：采样率由环境变量驱动（`apps/admin/src/metrics/config.ts:3`）。客户端简易合并通过微队列实现（`apps/admin/src/metrics/webVitals.ts:54-55`）。
 
 ### 示例初始化（参考）
 ```ts
@@ -151,6 +161,7 @@ model WebVitalsDaily {
   - `VITE_API_BASE`（后端地址，自动补 `/api`）
   - `VITE_METRICS_SAMPLE_RATE=0.1`
   - `VITE_APP_ID=admin`，`VITE_APP_VERSION=1.0.0`
+- 新增：`VITE_ADMIN_OFFLINE=1|0`。当为 `1/true` 时，前端启动不再强制要求后端地址与登录，路由守卫跳过登录校验，仍保留角色页拦截；HTTP 客户端在未配置 `VITE_API_BASE` 时默认使用相对 `/api`。
 - 后端：启用 `POST /api/metrics/webvitals` 路由，数据库迁移，定时聚合任务（可选）。
 
 ## 实施计划
@@ -158,10 +169,12 @@ model WebVitalsDaily {
    - 新增 `metrics/config.ts`、`metrics/session.ts`、`metrics/webVitals.ts`
    - 在 `main.ts` 初始化；`router.afterEach` 更新导航上下文
    - `pnpm add web-vitals`
+   - 已实现：上述事项均已完成；另已增加离线开关 `VITE_ADMIN_OFFLINE` 与路由守卫适配。
 2) 后端
    - 新增路由 `POST /api/metrics/webvitals`
    - 增加 Prisma 模型与迁移；入库与基础校验
    - （可选）日聚合任务与查询接口
+   - 已实现：原始记录接收与最近查询接口已完成（`apps/server/src/index.ts:214-277`）。
 3) 联调
    - 配置 `VITE_API_BASE`，本地联通后端
    - 压力场景（首页组合页）验证指标上报与入库
@@ -188,11 +201,15 @@ model WebVitalsDaily {
 - `GET /api/metrics/webvitals/recent?limit=200`：返回最近 N 条原始记录，来源于 `data/web-vitals.log`（文件不存在时返回空集）。
 - 目的：避免首次阶段的数据库依赖，便于快速验证与可视化。
 
+已实现：接口已提供（`apps/server/src/index.ts:260-277`）；告警 recent 亦已提供（`apps/server/src/index.ts:279-293`）。
+
 ### 前端新增
 - `src/apis/metrics.ts`：封装 `getRecentWebVitals(limit)` 请求与类型。
 - `src/hooks/useWebVitalsFeed.ts`：每 2s 轮询最近记录，在客户端计算 `p50/p75/p95/count`，并输出最新上下文（会话/导航/路由）。
 - `src/components/PerfCard.vue`：通用性能卡片组件，按 `p75` 显示健康度状态（良好/需改进/较差），并展示 `p50/p75/p95/样本量`。
 - `src/views/Dashboard.vue`：仪表盘页面，包含五项核心指标（`LCP/CLS/INP/FCP/TTFB`）的卡片与“最近记录”表格明细。
+
+已实现：上述文件均已落地并运行；在离线模式下，仪表盘会显示错误提示但不影响页面加载。
 
 ### 指标显示与阈值
 - 单位规范：`CLS` 为无单位；其余指标统一以秒展示（采集值毫秒→秒）。
