@@ -22,7 +22,7 @@ const router = new Router({ prefix: '/api' })
 async function bootstrap() {
   const { repo, prisma } = await createUserRepo()
 
-  console.log('[boot] COS env id=%s key=%s bucket=%s region=%s prefix=%s', !!env.COS_SECRET_ID, !!env.COS_SECRET_KEY, env.COS_BUCKET || '(missing)', env.COS_REGION || '(missing)', env.COS_SONGS_PREFIX || '(empty)')
+  console.log('[boot] COS env id=%s key=%s bucket=%s region=%s prefix=%s', env.COS_SECRET_ID.slice(10), env.COS_SECRET_KEY.slice(10), env.COS_BUCKET || '(missing)', env.COS_REGION || '(missing)', env.COS_SONGS_PREFIX || '(empty)')
 
 app.use(cors())
 app.use(
