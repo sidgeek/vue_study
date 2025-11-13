@@ -17,42 +17,34 @@
       <el-tab-pane label="基础图表" name="basic">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-card shadow="never">
-              <template #header>
-                <div class="card-header">折线图</div>
-              </template>
+            <BaseCard>
+              <template #header>折线图</template>
               <ELineChart :title="'折线图'" :categories="line.categories" :series="line.series" :dark="dark" :height="320" @click="onChartClick" />
-            </el-card>
+            </BaseCard>
           </el-col>
           <el-col :span="12">
-            <el-card shadow="never">
-              <template #header>
-                <div class="card-header">柱状图</div>
-              </template>
+            <BaseCard>
+              <template #header>柱状图</template>
               <EBarChart :title="'柱状图'" :categories="bar.categories" :series="bar.series" :dark="dark" :height="320" @click="onChartClick" />
-            </el-card>
+            </BaseCard>
           </el-col>
         </el-row>
 
         <el-row :gutter="16" class="mt16">
           <el-col :span="12">
-            <el-card shadow="never">
-              <template #header>
-                <div class="card-header">饼图</div>
-              </template>
+            <BaseCard>
+              <template #header>饼图</template>
               <EPieChart :title="'饼图'" :data="pie" :dark="dark" :height="320" @click="onChartClick" />
-            </el-card>
+            </BaseCard>
           </el-col>
           <el-col :span="12">
-            <el-card shadow="never">
-              <template #header>
-                <div class="card-header">事件与交互</div>
-              </template>
+            <BaseCard>
+              <template #header>事件与交互</template>
               <div class="events">
                 <el-alert :title="eventMsg || '暂无事件'" type="info" show-icon />
                 <p class="muted">点击图形后显示最近一次事件信息。</p>
               </div>
-            </el-card>
+            </BaseCard>
           </el-col>
         </el-row>
       </el-tab-pane>
@@ -78,6 +70,7 @@ import { ref, watch } from 'vue'
 import ELineChart from '@/components/echarts/ELineChart.vue'
 import EBarChart from '@/components/echarts/EBarChart.vue'
 import EPieChart from '@/components/echarts/EPieChart.vue'
+import BaseCard from '@/components/BaseCard.vue'
 
 const dark = ref(false)
 const size = ref(50)
