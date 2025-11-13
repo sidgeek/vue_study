@@ -50,8 +50,8 @@ router.get('/openapi.json', (ctx) => {
 const auth = buildAuthRouter(repo, env.JWT_SECRET, prisma)
 router.use('/auth', auth.routes(), auth.allowedMethods())
 
-const songs = buildSongsRouter()
-router.use('/songs', songs.routes(), songs.allowedMethods())
+// const songs = buildSongsRouter()
+// router.use('/songs', songs.routes(), songs.allowedMethods())
 const playlists = buildPlaylistsRouter(prisma)
 router.use('/playlists', playlists.routes(), playlists.allowedMethods())
 
