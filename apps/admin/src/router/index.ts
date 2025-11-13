@@ -79,6 +79,13 @@ const routes: RouteRecordRaw[] = [
       }
       ,
       {
+        path: 'playlists',
+        name: 'playlists',
+        component: () => import('@/views/Playlists.vue'),
+        meta: { public: true }
+      }
+      ,
+      {
         path: 'xss-lab',
         name: 'xss-lab',
         component: () => import('@/views/XSSLab.vue'),

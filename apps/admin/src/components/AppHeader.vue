@@ -15,10 +15,11 @@
         <el-menu-item index="analysis">分析</el-menu-item>
         <el-menu-item index="echarts">ECharts</el-menu-item>
         <el-menu-item v-if="canManageUsers" index="users">用户管理</el-menu-item>
-        <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
-        <el-menu-item index="slate">Slate</el-menu-item>
-        <el-menu-item index="monaco-editor">Monaco</el-menu-item>
-        <el-menu-item index="perf-stress">性能压测</el-menu-item>
+      <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
+      <el-menu-item index="slate">Slate</el-menu-item>
+      <el-menu-item index="monaco-editor">Monaco</el-menu-item>
+      <el-menu-item index="perf-stress">性能压测</el-menu-item>
+      <el-menu-item index="playlists">音乐歌单</el-menu-item>
       </el-menu>
     </nav>
     <div class="right">
@@ -51,6 +52,7 @@ function onSelect(index: string) {
   if (index === 'slate') router.push({ name: 'slate' })
   if (index === 'monaco-editor') router.push({ name: 'monaco-editor' })
   if (index === 'perf-stress') router.push({ name: 'perf-stress' })
+  if (index === 'playlists') router.push({ name: 'playlists' })
 }
 
 function onLogout() {
