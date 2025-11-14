@@ -34,6 +34,22 @@ export function buildPlaylistsRouter(prisma: PrismaClient) {
     ctx.body = { items }
   })
 
+  // 管理员扫描 COS 放在动态路由之前，避免被 /:code 捕获
+  r.get('/scan', verifyJwt as any, requireAdmin, async (ctx) => {
+    const limit = Number(ctx.query.limit || 0)
+    const all = await listSongs()
+    const items = limit > 0 ? all.slice(0, limit) : all
+    for (const s of items) {
+      const last = s.lastModified ? new Date(s.lastModified) : null
+      await (prisma as any).song.upsert({
+        where: { key: s.key },
+        update: { name: s.name, size: s.size, lastModified: last },
+        create: { key: s.key, name: s.name, size: s.size, lastModified: last }
+      })
+    }
+    ctx.body = { items, total: items.length }
+  })
+
   r.get('/:code', async (ctx) => {
     const code = String(ctx.params.code)
     const p = await prisma.playlist.findUnique({ where: { code } })
@@ -53,21 +69,6 @@ export function buildPlaylistsRouter(prisma: PrismaClient) {
     const urls = await Promise.all(items.map((x) => signUrl(x.key)))
     for (let i = 0; i < items.length; i++) items[i].url = urls[i] || ''
     ctx.body = { playlist: { code: p.code, name: p.name, description: p.description ?? null }, items }
-  })
-
-  r.get('/scan', verifyJwt as any, requireAdmin, async (ctx) => {
-    const limit = Number(ctx.query.limit || 0)
-    const all = await listSongs()
-    const items = limit > 0 ? all.slice(0, limit) : all
-    for (const s of items) {
-      const last = s.lastModified ? new Date(s.lastModified) : null
-      await (prisma as any).song.upsert({
-        where: { key: s.key },
-        update: { name: s.name, size: s.size, lastModified: last },
-        create: { key: s.key, name: s.name, size: s.size, lastModified: last }
-      })
-    }
-    ctx.body = { items, total: items.length }
   })
 
   r.post('/', verifyJwt as any, requireAdmin, async (ctx) => {
