@@ -15,6 +15,7 @@
         <el-menu-item index="analysis">分析</el-menu-item>
         <el-menu-item index="echarts">ECharts</el-menu-item>
         <el-menu-item v-if="canManageUsers" index="users">用户管理</el-menu-item>
+        <el-menu-item v-if="canManageUsers" index="playlist-manage">歌单管理</el-menu-item>
         <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
         <el-menu-item index="slate">Slate</el-menu-item>
         <el-menu-item index="monaco-editor">Monaco</el-menu-item>
@@ -48,6 +49,7 @@ function onSelect(index: string) {
   if (index === 'analysis') router.push({ name: 'analysis' })
   if (index === 'echarts') router.push({ name: 'echarts' })
   if (index === 'users') router.push({ name: 'users' })
+  if (index === 'playlist-manage') router.push({ name: 'playlist-manage' })
   if (index === 'g6-dagre') router.push({ name: 'g6-dagre' })
   if (index === 'slate') router.push({ name: 'slate' })
   if (index === 'monaco-editor') router.push({ name: 'monaco-editor' })

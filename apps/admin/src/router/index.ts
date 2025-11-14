@@ -86,6 +86,13 @@ const routes: RouteRecordRaw[] = [
       }
       ,
       {
+        path: 'playlist-manage',
+        name: 'playlist-manage',
+        component: () => import('@/views/PlaylistManage.vue'),
+        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'] }
+      }
+      ,
+      {
         path: 'xss-lab',
         name: 'xss-lab',
         component: () => import('@/views/XSSLab.vue'),
