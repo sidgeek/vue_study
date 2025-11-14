@@ -12,7 +12,7 @@ import { koaSwagger } from 'koa2-swagger-ui'
 import { ensureDefaultRoles } from './config/roles'
 import * as path from 'path'
 import { appendFile, mkdir, readFile } from 'fs/promises'
-import { buildSongsRouter } from './routes/songs'
+// import { buildSongsRouter } from './routes/songs'
 import { buildPlaylistsRouter } from './routes/playlists'
 import { ensureDefaultPlaylists } from './config/playlists'
 

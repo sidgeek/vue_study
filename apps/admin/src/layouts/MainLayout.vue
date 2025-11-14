@@ -21,7 +21,13 @@ const route = useRoute()
 const auth = useAuthStore()
 auth.restore()
 
-const current = computed(() => route.name?.toString() || 'dashboard')
+const current = computed(() => {
+  if (route.name?.toString() === 'playlists') {
+    const qn = String((route.query as any)?.name || '').trim()
+    if (qn) return qn
+  }
+  return route.name?.toString() || 'dashboard'
+})
 </script>
 
 <style scoped>
