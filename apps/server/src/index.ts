@@ -12,7 +12,7 @@ import { koaSwagger } from 'koa2-swagger-ui'
 import { ensureDefaultRoles } from './config/roles'
 import * as path from 'path'
 import { appendFile, mkdir, readFile } from 'fs/promises'
-// import { buildSongsRouter } from './routes/songs'
+import { buildSongsRouter } from './routes/songs'
 import { buildPlaylistsRouter } from './routes/playlists'
 import { ensureDefaultPlaylists } from './config/playlists'
 
@@ -50,8 +50,8 @@ router.get('/openapi.json', (ctx) => {
 const auth = buildAuthRouter(repo, env.JWT_SECRET, prisma)
 router.use('/auth', auth.routes(), auth.allowedMethods())
 
-// const songs = buildSongsRouter()
-// router.use('/songs', songs.routes(), songs.allowedMethods())
+const songs = buildSongsRouter(prisma)
+router.use('/songs', songs.routes(), songs.allowedMethods())
 const playlists = buildPlaylistsRouter(prisma)
 router.use('/playlists', playlists.routes(), playlists.allowedMethods())
 
