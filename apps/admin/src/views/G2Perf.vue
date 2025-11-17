@@ -4,7 +4,10 @@
       <template #header>
         <div class="hdr">
           <span>G2 性能模拟</span>
-          <span class="muted">多图 + 大时间跨度场景下的渲染表现</span>
+          <div class="ops">
+            <span class="muted">大跨度图表个数</span>
+            <el-input-number v-model="chartCountLarge" :min="1" :max="12" />
+          </div>
         </div>
       </template>
       <p class="desc">下方两个 Tab：正常跨度（约 90 天）与大跨度（约 2000 天）。每个 Tab 放置 4 个图表（折线/柱状），默认开启标签以模拟主线程计算负载。</p>
@@ -16,7 +19,7 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>折线图</template>
-              <G2LineChart :data="normalData" :height="300" :withLabel="false" :tickCount="6" />
+              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
@@ -29,17 +32,12 @@
       </el-tab-pane>
 
       <el-tab-pane label="大跨度" name="large" lazy>
-        <el-row :gutter="16">
-          <el-col :span="12">
+        <el-row :gutter="16" class="mt16" v-for="(row, ri) in chunkedLargeData" :key="ri">
+          <el-col :span="12" v-for="(ds, ci) in row" :key="ci">
             <BaseCard>
-              <template #header>折线图</template>
-              <G2LineChart :data="largeData" :height="300" :withLabel="false" :tickCount="6" />
-            </BaseCard>
-          </el-col>
-          <el-col :span="12">
-            <BaseCard>
-              <template #header>柱状图</template>
-              <G2IntervalChart :data="largeData" :height="300" :withLabel="true" :tickCount="6" />
+              <template #header>{{ ((ri*2+ci)%2===0) ? '折线图' : '柱状图' }}</template>
+              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" />
+              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -50,7 +48,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import BaseCard from '@/components/BaseCard.vue'
 import G2LineChart from '@/components/g2/G2LineChart.vue'
 import G2IntervalChart from '@/components/g2/G2IntervalChart.vue'
@@ -58,9 +56,26 @@ import G2IntervalChart from '@/components/g2/G2IntervalChart.vue'
  type Point = { ts: number; date: string; series: string; value: number }
 
 const tab = ref<'normal'|'large'>('normal')
+const chartCountLarge = ref(4)
 
 const normalData = ref<Point[]>([])
-const largeData = ref<Point[]>([])
+const largeDataList = ref<Point[][]>([])
+
+function buildLargeList() {
+  const list: Point[][] = []
+  for (let i = 0; i < chartCountLarge.value; i++) {
+    list.push(gen(360))
+  }
+  largeDataList.value = list
+}
+
+const chunkedLargeData = computed(() => {
+  const rows: Point[][][] = []
+  for (let i = 0; i < largeDataList.value.length; i += 2) {
+    rows.push(largeDataList.value.slice(i, i + 2))
+  }
+  return rows
+})
 
 function gen(days: number): Point[] {
   const out: Point[] = []
@@ -79,8 +94,10 @@ function gen(days: number): Point[] {
 
 onMounted(() => {
   normalData.value = gen(90)
-  largeData.value = gen(2000)
+  buildLargeList()
 })
+
+watch(chartCountLarge, () => buildLargeList())
 </script>
 
 <style scoped>
