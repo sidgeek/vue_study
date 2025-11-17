@@ -79,6 +79,13 @@ const routes: RouteRecordRaw[] = [
       }
       ,
       {
+        path: 'g2-perf',
+        name: 'g2-perf',
+        component: () => import('@/views/G2Perf.vue'),
+        meta: { public: true }
+      }
+      ,
+      {
         path: 'playlists',
         name: 'playlists',
         component: () => import('@/views/Playlists.vue'),
