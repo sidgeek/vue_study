@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@antv/g2': fileURLToPath(new URL('../G2/esm/index.js', import.meta.url))
+      '@antv/g2': fileURLToPath(new URL('../G2/src/index.ts', import.meta.url))
     }
   },
   optimizeDeps: {
