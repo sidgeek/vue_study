@@ -42,6 +42,17 @@
           </el-col>
         </el-row>
       </el-tab-pane>
+
+      <el-tab-pane label="折线图" name="single" lazy>
+        <el-row :gutter="16">
+          <el-col :span="24">
+            <BaseCard>
+              <template #header>折线图（10点）</template>
+              <SimpleLineChart :data="singleData" :height="300" />
+            </BaseCard>
+          </el-col>
+        </el-row>
+      </el-tab-pane>
     </el-tabs>
   </div>
  </template>
@@ -52,11 +63,13 @@ import { ref, onMounted, computed, watch } from 'vue'
 import BaseCard from '@/components/BaseCard.vue'
 import G2LineChart from '@/components/g2/G2LineChart.vue'
 import G2IntervalChart from '@/components/g2/G2IntervalChart.vue'
+import SimpleLineChart from '@/components/g2/SimpleLineChart.vue'
 
  type Point = { ts: number; date: string; series: string; value: number }
 
 const tab = ref<'normal'|'large'>('normal')
 const chartCountLarge = ref(4)
+const singleData = ref<Point[]>([])
 
 const normalData = ref<Point[]>([])
 const largeDataList = ref<Point[][]>([])
@@ -95,6 +108,17 @@ function gen(days: number): Point[] {
 onMounted(() => {
   normalData.value = gen(90)
   buildLargeList()
+  const start = new Date()
+  start.setDate(start.getDate() - 10)
+  const arr: Point[] = []
+  for (let i = 0; i < 10; i++) {
+    const d = new Date(start.getTime())
+    d.setDate(start.getDate() + i)
+    const ts = d.getTime()
+    const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    arr.push({ ts, date, series: 'S', value: Math.round(Math.random()*100) })
+  }
+  singleData.value = arr
 })
 
 watch(chartCountLarge, () => buildLargeList())
