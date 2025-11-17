@@ -35,22 +35,27 @@ function init() {
     scale: { x: { type: 'time', nice: true } }
   })
   c.data(props.data)
-  c.interval()
+  const geom = c.interval()
     .encode('x','ts')
     .encode('y','value')
     .encode('color','series')
     .encode('series','series')
     .transform({ type: 'dodgeX' })
-    .label(props.withLabel ? { text: 'value', formatter: (text: any) => String(text ?? '') } : false)
+  if (props.withLabel) {
+    geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+  }
   c.render()
   chart.value = c
 }
 
 function dispose() { if (chart.value) { chart.value.destroy(); chart.value = null } }
 
-watch(() => [props.data, props.withLabel, props.tickCount], () => {
-  if (!chart.value) { init(); return }
-  chart.value.changeData(props.data)
+watch(() => props.data, () => {
+  if (chart.value) chart.value.changeData(props.data)
+}, { deep: true })
+
+watch(() => [props.withLabel, props.tickCount], () => {
+  init()
 }, { deep: true })
 
 onMounted(() => init())

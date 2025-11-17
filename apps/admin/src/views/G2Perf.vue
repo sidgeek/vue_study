@@ -16,7 +16,7 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>折线图</template>
-              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" />
+              <G2LineChart :data="normalData" :height="300" :withLabel="false" :tickCount="6" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
@@ -33,7 +33,7 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>折线图</template>
-              <G2LineChart :data="largeData" :height="300" :withLabel="true" :tickCount="6" />
+              <G2LineChart :data="largeData" :height="300" :withLabel="false" :tickCount="6" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
