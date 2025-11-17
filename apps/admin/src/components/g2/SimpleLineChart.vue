@@ -36,7 +36,10 @@ function init() {
     tooltip: { shared: true }
   })
   c.data(props.data)
-  c.line().encode('x','ts').encode('y','value')
+  const geom = c.line()
+    .encode('x','ts')
+    .encode('y','value')
+  geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
   c.render()
   chart.value = c
 }
@@ -44,7 +47,6 @@ function init() {
 function dispose() { if (chart.value) { chart.value.destroy(); chart.value = null } }
 
 watch(() => props.data, () => { if (chart.value) chart.value.changeData(props.data) }, { deep: true })
-
 onMounted(() => init())
 onBeforeUnmount(() => dispose())
 </script>
