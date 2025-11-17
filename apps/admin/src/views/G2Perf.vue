@@ -19,13 +19,13 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>折线图</template>
-              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" />
+              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
             <BaseCard>
               <template #header>柱状图</template>
-              <G2IntervalChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" />
+              <G2IntervalChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -36,8 +36,8 @@
           <el-col :span="12" v-for="(ds, ci) in row" :key="ci">
             <BaseCard>
               <template #header>{{ ((ri*2+ci)%2===0) ? '折线图' : '柱状图' }}</template>
-              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" />
-              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" />
+              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" />
+              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -64,7 +64,7 @@ const largeDataList = ref<Point[][]>([])
 function buildLargeList() {
   const list: Point[][] = []
   for (let i = 0; i < chartCountLarge.value; i++) {
-    list.push(gen(360))
+    list.push(gen(2000))
   }
   largeDataList.value = list
 }

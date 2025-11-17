@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number; series?: string }
 
-const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number }>()
+const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex' }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -44,8 +44,38 @@ function init() {
     .encode('y','value')
     .encode('color','series')
     .encode('series','series')
-  if (props.withLabel) {
-    geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+  const showLabel = props.labelMode === 'complex' || props.withLabel === true
+  if (showLabel) {
+    const isComplex = props.labelMode === 'complex'
+    if (isComplex) {
+      geom.label({
+        text: (d: any) => {
+          const t = Number(d?.ts ?? 0)
+          const dt = new Date(t)
+          const y = dt.getFullYear()
+          const m = String(dt.getMonth()+1).padStart(2,'0')
+          const dd = String(dt.getDate()).padStart(2,'0')
+          const h = String(dt.getHours()).padStart(2,'0')
+          const dow = ['日','一','二','三','四','五','六'][dt.getDay()]
+          const q = Math.floor(dt.getMonth()/3) + 1
+          const v = Number(d?.value ?? 0)
+          const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
+          const pct = `${Math.round(v)}%`
+          const series = String(d?.series ?? '')
+          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q}\n${series}: ${v}\n${cat} · ${pct}`
+        },
+        style: {
+          fontSize: 12,
+          fontWeight: 'bold',
+          fill: '#333',
+          background: { fill: 'rgba(255,255,255,0.85)', stroke: '#999', radius: 4, padding: [4,6], shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.25)' }
+        },
+        position: 'top'
+      })
+      ;(geom as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+    } else {
+      geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+    }
   }
   c.render()
   chart.value = c
@@ -57,7 +87,7 @@ watch(() => props.data, () => {
   if (chart.value) chart.value.changeData(props.data)
 }, { deep: true })
 
-watch(() => [props.withLabel, props.tickCount], () => {
+watch(() => [props.withLabel, props.tickCount, props.labelMode], () => {
   init()
 }, { deep: true })
 
