@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number }
 
-const props = defineProps<{ data: Datum[]; height?: number }>()
+const props = defineProps<{ data: Datum[]; height?: number; labelStep?: number }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -35,11 +35,20 @@ function init() {
     scale: { x: { type: 'time', nice: true } },
     tooltip: { shared: true }
   })
-  c.data(props.data)
+  const withIndex = props.data.map((d, i) => ({ ...d, __idx: i }))
+  c.data(withIndex)
   const geom = c.line()
     .encode('x','ts')
     .encode('y','value')
-  geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+  const step = props.labelStep ?? 1
+  if (step <= 1) {
+    geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+  } else {
+    geom.label({
+      text: 'value',
+      formatter: (text: any, d: any) => ((Number(d?.__idx ?? -1) % step) === 0 ? String(text ?? '') : '')
+    })
+  }
   c.render()
   chart.value = c
 }
@@ -47,6 +56,7 @@ function init() {
 function dispose() { if (chart.value) { chart.value.destroy(); chart.value = null } }
 
 watch(() => props.data, () => { if (chart.value) chart.value.changeData(props.data) }, { deep: true })
+watch(() => props.labelStep, () => { init() })
 onMounted(() => init())
 onBeforeUnmount(() => dispose())
 </script>

@@ -48,7 +48,7 @@
           <el-col :span="24">
             <BaseCard>
               <template #header>折线图（10点）</template>
-              <SimpleLineChart :data="singleData" :height="300" />
+              <SimpleLineChart :data="singleData" :height="300" :labelStep="2" />
             </BaseCard>
           </el-col>
         </el-row>
