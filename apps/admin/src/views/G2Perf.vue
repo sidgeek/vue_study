@@ -36,8 +36,8 @@
           <el-col :span="12" v-for="(ds, ci) in row" :key="ci">
             <BaseCard>
               <template #header>{{ ((ri*2+ci)%2===0) ? '折线图' : '柱状图' }}</template>
-              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="12" />
-              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="12" />
+              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="120" />
+              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="120" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -77,7 +77,7 @@ const largeDataList = ref<Point[][]>([])
 function buildLargeList() {
   const list: Point[][] = []
   for (let i = 0; i < chartCountLarge.value; i++) {
-    list.push(gen(2000))
+    list.push(gen(360))
   }
   largeDataList.value = list
 }
