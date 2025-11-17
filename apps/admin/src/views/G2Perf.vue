@@ -79,7 +79,7 @@ function gen(days: number): Point[] {
 
 onMounted(() => {
   normalData.value = gen(90)
-  largeData.value = gen(300)
+  largeData.value = gen(2000)
 })
 </script>
 
