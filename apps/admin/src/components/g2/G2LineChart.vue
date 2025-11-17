@@ -26,11 +26,17 @@ function init() {
   c.options({
     theme: 'classic',
     axis: {
-      x: { title: 'date', tickCount: props.tickCount ?? 6, labelFormatter: (v: number | string) => formatTs(Number(v)) },
+      x: { title: 'date', tickCount: props.tickCount ?? 6, labelFormatter: (v: number | string) => {
+        const n = typeof v === 'number' ? v : Number(v)
+        return Number.isFinite(n) ? formatTs(n) : String(v ?? '')
+      } },
       y: { title: 'value' }
     },
     scale: { x: { type: 'time', nice: true } },
-    tooltip: { shared: true, title: (d: any) => formatTs(Number(d?.ts ?? 0)) }
+    tooltip: { shared: true, title: (d: any) => {
+      const t = (Array.isArray(d) ? d[0]?.ts : d?.ts) ?? 0
+      return formatTs(Number(t))
+    } }
   })
   c.data(props.data)
   c.line()
@@ -38,7 +44,7 @@ function init() {
     .encode('y','value')
     .encode('color','series')
     .encode('series','series')
-    .label(props.withLabel ? 'value' : undefined)
+    .label(props.withLabel ? { text: 'value', formatter: (text: any) => String(text ?? '') } : false)
   c.render()
   chart.value = c
 }

@@ -26,7 +26,10 @@ function init() {
   c.options({
     theme: 'classic',
     axis: {
-      x: { title: 'date', tickCount: props.tickCount ?? 6, labelFormatter: (v: number | string) => formatTs(Number(v)) },
+      x: { title: 'date', tickCount: props.tickCount ?? 6, labelFormatter: (v: number | string) => {
+        const n = typeof v === 'number' ? v : Number(v)
+        return Number.isFinite(n) ? formatTs(n) : String(v ?? '')
+      } },
       y: { title: 'value' }
     },
     scale: { x: { type: 'time', nice: true } }
@@ -38,7 +41,7 @@ function init() {
     .encode('color','series')
     .encode('series','series')
     .transform({ type: 'dodgeX' })
-    .label(props.withLabel ? 'value' : undefined)
+    .label(props.withLabel ? { text: 'value', formatter: (text: any) => String(text ?? '') } : false)
   c.render()
   chart.value = c
 }
