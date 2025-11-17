@@ -38,14 +38,16 @@ function init() {
       return formatTs(Number(t))
     } }
   })
-  c.data(props.data)
+  const withIndex = props.data.map((d, i) => ({ ...d, __idx: i }))
+  c.data(withIndex)
   const geom = c.line()
     .encode('x','ts')
     .encode('y','value')
     .encode('color','series')
     .encode('series','series')
   const showLabel = props.labelMode === 'complex' || props.withLabel === true
-  if (showLabel && (!props.labelStep || props.labelStep <= 1)) {
+  const step = props.labelStep ?? 1
+  if (showLabel && step <= 1) {
     const isComplex = props.labelMode === 'complex'
     if (isComplex) {
       geom.label({
@@ -77,14 +79,13 @@ function init() {
       geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
     }
   }
-  if (showLabel && props.labelStep && props.labelStep > 1) {
-    const sampled = props.data.filter((_, i) => i % props.labelStep! === 0)
+  if (showLabel && step > 1) {
     const isComplex = props.labelMode === 'complex'
-    const textMark = c.text({ data: sampled })
-      .encode('x','ts')
-      .encode('y','value')
-      .encode('text', (d: any) => {
-        if (isComplex) {
+    if (isComplex) {
+      geom.label({
+        text: (d: any) => {
+          const idx = Number(d?.__idx ?? -1)
+          if (idx < 0 || idx % step !== 0) return ''
           const t = Number(d?.ts ?? 0)
           const dt = new Date(t)
           const y = dt.getFullYear()
@@ -98,12 +99,22 @@ function init() {
           const pct = `${Math.round(v)}%`
           const series = String(d?.series ?? '')
           return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q}\n${series}: ${v}\n${cat} · ${pct}`
-        }
-        return String(d?.value ?? '')
+        },
+        style: {
+          fontSize: 12,
+          fontWeight: 'bold',
+          fill: '#333',
+          background: { fill: 'rgba(255,255,255,0.85)', stroke: '#999', radius: 4, padding: [4,6], shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.25)' }
+        },
+        position: 'top'
       })
-      .style('fontSize', 12)
-      .style('fill', '#333')
-    ;(textMark as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+      ;(geom as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+    } else {
+      geom.label({
+        text: 'value',
+        formatter: (text: any, d: any) => ((Number(d?.__idx ?? -1) % step) === 0 ? String(text ?? '') : '')
+      })
+    }
   }
   c.render()
   chart.value = c
@@ -112,7 +123,10 @@ function init() {
 function dispose() { if (chart.value) { chart.value.destroy(); chart.value = null } }
 
 watch(() => props.data, () => {
-  if (chart.value) chart.value.changeData(props.data)
+  if (chart.value) {
+    const withIndex2 = props.data.map((d, i) => ({ ...d, __idx: i }))
+    chart.value.changeData(withIndex2)
+  }
 }, { deep: true })
 
 watch(() => [props.withLabel, props.tickCount, props.labelMode, props.labelStep], () => {
