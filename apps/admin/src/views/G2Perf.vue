@@ -19,13 +19,13 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>折线图</template>
-              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" />
+              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="1" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
             <BaseCard>
-              <template #header>柱状图</template>
-              <G2IntervalChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" />
+              <template #header>折线图2</template>
+              <G2LineChart :data="normalData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="16" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -36,8 +36,8 @@
           <el-col :span="12" v-for="(ds, ci) in row" :key="ci">
             <BaseCard>
               <template #header>{{ ((ri*2+ci)%2===0) ? '折线图' : '柱状图' }}</template>
-              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" />
-              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" />
+              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="12" />
+              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="12" />
             </BaseCard>
           </el-col>
         </el-row>

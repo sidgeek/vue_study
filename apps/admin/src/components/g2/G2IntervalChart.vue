@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number; series?: string }
 
-const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex' }>()
+const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex'; labelStep?: number }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -42,7 +42,7 @@ function init() {
     .encode('series','series')
     .transform({ type: 'dodgeX' })
   const showLabel = props.labelMode === 'complex' || props.withLabel === true
-  if (showLabel) {
+  if (showLabel && (!props.labelStep || props.labelStep <= 1)) {
     const isComplex = props.labelMode === 'complex'
     if (isComplex) {
       geom.label({
@@ -60,6 +60,34 @@ function init() {
       geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
     }
   }
+  if (showLabel && props.labelStep && props.labelStep > 1) {
+    const sampled = props.data.filter((_, i) => i % props.labelStep! === 0)
+    const isComplex = props.labelMode === 'complex'
+    const textMark = c.text({ data: sampled })
+      .encode('x','ts')
+      .encode('y','value')
+      .encode('text', (d: any) => {
+        if (isComplex) {
+          const t = Number(d?.ts ?? 0)
+          const dt = new Date(t)
+          const y = dt.getFullYear()
+          const m = String(dt.getMonth()+1).padStart(2,'0')
+          const dd = String(dt.getDate()).padStart(2,'0')
+          const h = String(dt.getHours()).padStart(2,'0')
+          const dow = ['日','一','二','三','四','五','六'][dt.getDay()]
+          const q = Math.floor(dt.getMonth()/3) + 1
+          const v = Number(d?.value ?? 0)
+          const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
+          const pct = `${Math.round(v)}%`
+          const series = String(d?.series ?? '')
+          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q}\n${series}: ${v}\n${cat} · ${pct}`
+        }
+        return String(d?.value ?? '')
+      })
+      .style('fontSize', 12)
+      .style('fill', '#333')
+    ;(textMark as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+  }
   c.render()
   chart.value = c
 }
@@ -70,7 +98,7 @@ watch(() => props.data, () => {
   if (chart.value) chart.value.changeData(props.data)
 }, { deep: true })
 
-watch(() => [props.withLabel, props.tickCount, props.labelMode], () => {
+watch(() => [props.withLabel, props.tickCount, props.labelMode, props.labelStep], () => {
   init()
 }, { deep: true })
 
