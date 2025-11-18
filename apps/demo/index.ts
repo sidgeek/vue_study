@@ -5,7 +5,7 @@ import _ from "lodash";
 const viewData = Array(10)
   .fill(1)
   .reduce((acc, cur, type) => {
-    Array(400 * 1)
+    Array(80 * 1)
       .fill(1)
       .forEach((_, x) => {
         acc.push({
@@ -24,24 +24,41 @@ const chart = new Chart({
 
 const options = {
   type: "view",
-  data: viewData,
+  data: mockData.flat(),
+  // insetBottom: 12,
+  // paddingBottom: 24,
   children: [
     {
       type: "interval",
       encode: {
         x: "CMT_GLOBAL_ASPECT",
-        y: "CMT_ASPECT_POSITIVE_VOLUME_RATE",
-        // color: "CMT_EMOTION_TYPE",
+        y: (d) => d.CMT_ASPECT_POSITIVE_VOLUME_RATE * 100,
+        series: "CMT_EMOTION_TYPE",
+        color: "CMT_EMOTION_TYPE",
       },
+      transform: [
+        { type: "groupX", y: "sum" },
+        { type: "dodgeX" }
+      ],
       labels: [
-        { text: "CMT_ASPECT_POSITIVE_VOLUME_RATE", position: "top" },
+        {
+          text: (d) => Math.round(d.CMT_ASPECT_POSITIVE_VOLUME_RATE * 100),
+          position: "top",
+          offset: 6,
+          transform: [
+            // { type: "exceedAdjust" },
+            { type: "overflowHide" },
+            // { type: "overlapHide" }
+          ],
+        },
       ],
       axis: {
-        y: { title: "123" },
+        x: { tickCount: 1, labelAutoHide: true },
+        y: { title: "正面占比(%)" },
       },
       scale: {
         x: { type: "band" },
-        y: { nice: true },
+        y: { domain: [0, 100], nice: true },
       },
     },
   ],
