@@ -54,7 +54,6 @@
       </el-tab-pane>
 
       <el-tab-pane label="OverflowHide" name="overflow" lazy>
-
         <el-row :gutter="16">
           <el-col :span="12">
             <BaseCard>
@@ -66,11 +65,13 @@
             <BaseCard>
               <template #header>
                 <div class="hdr">
-                  <span>同数据 · 开启 OverflowHide</span>
+                  <span>多组 · 开启 OverflowHide</span>
                   <el-switch v-model="useOverflowHide" />
                 </div>
               </template>
-              <G2BarChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="useOverflowHide" />
+                <div v-for="(ds, i) in edgeDataSets" :key="i">
+                  <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="useOverflowHide" />
+                </div>
             </BaseCard>
           </el-col>
         </el-row>
@@ -105,12 +106,13 @@ const singleData = ref<Point[]>([])
 const normalData = ref<Point[]>([])
 const midData = ref<Point[]>([])
 const edgeData = ref<Point[]>([])
+const edgeDataSets = ref<Point[][]>([])
 const largeDataList = ref<Point[][]>([])
 
 function buildLargeList() {
   const list: Point[][] = []
   for (let i = 0; i < chartCountLarge.value; i++) {
-    list.push(gen(1000))
+    list.push(gen(180))
   }
   largeDataList.value = list
 }
@@ -193,6 +195,14 @@ function genEdge(days: number): Point[] {
   return out
 }
 
+function buildEdgeSets(groups: number = 4) {
+  const list: Point[][] = []
+  for (let i = 0; i < groups; i++) {
+    list.push(genEdge(1000))
+  }
+  edgeDataSets.value = list
+}
+
 function labelStepFor(ds: Point[]): number {
   const n = Array.isArray(ds) ? ds.length : 0
   const maxLabels = 30
@@ -202,7 +212,8 @@ function labelStepFor(ds: Point[]): number {
 onMounted(() => {
   normalData.value = gen(90)
   midData.value = genMid(90)
-  edgeData.value = genEdge(90)
+  edgeData.value = genEdge(1000)
+  buildEdgeSets()
   buildLargeList()
   const start = new Date()
   start.setDate(start.getDate() - 10)
