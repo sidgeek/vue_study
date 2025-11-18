@@ -2,7 +2,7 @@
   <div class="g2-minimal">
     <el-card shadow="never">
       <template #header>
-        <div class="card-header">G2 最简折线图</div>
+        <div class="card-header">G2 最简柱状图</div>
       </template>
       <div ref="mount" class="canvas"></div>
     </el-card>
@@ -16,7 +16,18 @@ import { Chart } from '@antv/g2'
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
 
-const data = Array.from({ length: 10 }, (_, i) => ({ x: i + 1, y: Math.round(20 + Math.random() * 80) }))
+const data = [
+  { x: 1, y: 1 },
+  { x: 2, y: 78 },
+  { x: 3, y: 55 },
+  { x: 4, y: 90 },
+  { x: 5, y: 35 },
+  { x: 6, y: 62 },
+  { x: 7, y: 80 },
+  { x: 8, y: 27 },
+  { x: 9, y: 70 },
+  { x: 10, y: 88 },
+]
 
 function init() {
   dispose()
@@ -25,13 +36,12 @@ function init() {
   c.options({
     theme: 'classic',
     axis: { x: { title: 'x', tickCount: 10 }, y: { title: 'y' } },
-    scale: { x: { type: 'linear', domain: [1, 10], nice: true }, y: { nice: true } },
+    scale: { x: { type: 'band' }, y: { nice: true } },
     tooltip: { shared: false, crosshairs: true },
   })
   c.data(data)
-  const line = c.line().encode('x', 'x').encode('y', 'y')
-  line.label({ text: 'y' })
-  c.point().encode('x', 'x').encode('y', 'y').style('size', 32)
+  const bar = c.interval().encode('x', 'x').encode('y', 'y').style('columnWidthRatio', 0.6)
+  bar.label({ text: 'y', position: 'top' })
   c.render()
   chart.value = c
 }

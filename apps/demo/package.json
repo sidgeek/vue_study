@@ -2,7 +2,7 @@
   "name": "g2-demo",
   "private": true,
   "dependencies": {
-    "@antv/g2": "5.1.13",
+    "@antv/g2": "^5.1.13",
     "lodash": "4.17.21"
   },
   "devDependencies": {
