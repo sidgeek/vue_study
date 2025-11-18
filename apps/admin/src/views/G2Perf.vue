@@ -75,6 +75,10 @@
           </el-col>
         </el-row>
       </el-tab-pane>
+
+      <el-tab-pane label="最简柱状图" name="minimal" lazy>
+        <G2Minimal />
+      </el-tab-pane>
     </el-tabs>
   </div>
  </template>
@@ -86,6 +90,7 @@ import BaseCard from '@/components/BaseCard.vue'
 import G2LineChart from '@/components/g2/G2LineChart.vue'
 import G2IntervalChart from '@/components/g2/G2IntervalChart.vue'
 import SimpleLineChart from '@/components/g2/SimpleLineChart.vue'
+import G2Minimal from '@/components/g2/G2Minimal.vue'
 
  type Point = { ts: number; date: string; series: string; value: number }
 
