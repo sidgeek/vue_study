@@ -5,6 +5,7 @@
         <div class="card-header">G2 最简柱状图</div>
       </template>
       <div ref="mount" class="canvas"></div>
+      <div ref="mountLine" class="canvas"></div>
     </el-card>
   </div>
 </template>
@@ -14,7 +15,9 @@ import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
 import { Chart } from '@antv/g2'
 
 const mount = ref<HTMLDivElement | null>(null)
+const mountLine = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
+const chartLine = shallowRef<Chart | null>(null)
 
 const data = [
   { x: 1, y: 1 },
@@ -38,17 +41,41 @@ function init() {
     axis: { x: { title: 'x', tickCount: 10 }, y: { title: 'y' } },
     scale: { x: { type: 'band' }, y: { nice: true } },
     tooltip: { shared: false, crosshairs: true },
+    interaction: { tooltip: { series: true } },
   })
   c.data(data)
   const bar = c.interval().encode('x', 'x').encode('y', 'y').style('columnWidthRatio', 0.6)
+  bar.tooltip({ title: 'x', items: [{ name: 'y', channel: 'y' }] })
   bar.label({ text: 'y', position: 'top', transform: [{ type: 'overflowHide' }] })
   c.render()
   chart.value = c
 }
 
-function dispose() { if (chart.value) { chart.value.destroy(); chart.value = null } }
+function initLine() {
+  if (!mountLine.value) return
+  const c = new Chart({ container: mountLine.value, autoFit: true })
+  c.options({
+    theme: 'classic',
+    axis: { x: { title: 'x', tickCount: 10 }, y: { title: 'y' } },
+    scale: { x: { type: 'linear', domain: [1, 10], nice: true }, y: { nice: true } },
+    tooltip: { shared: false, crosshairs: true },
+    interaction: { tooltip: { series: true } },
+  })
+  c.data(data)
+  const line = c.line().encode('x', 'x').encode('y', 'y')
+  line.tooltip({ title: 'x', items: [{ name: 'y', channel: 'y' }] })
+  line.label({ text: 'y' })
+  c.point().encode('x', 'x').encode('y', 'y').style('size', 24).tooltip({ title: 'x', items: [{ name: 'y', channel: 'y' }] })
+  c.render()
+  chartLine.value = c
+}
 
-onMounted(() => init())
+function dispose() {
+  if (chart.value) { chart.value.destroy(); chart.value = null }
+  if (chartLine.value) { chartLine.value.destroy(); chartLine.value = null }
+}
+
+onMounted(() => { init(); initLine(); })
 onBeforeUnmount(() => dispose())
 </script>
 
