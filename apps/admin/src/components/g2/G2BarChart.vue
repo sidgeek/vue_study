@@ -33,7 +33,9 @@ function init() {
       }},
       y: { title: 'value' }
     },
-    scale: { x: { type: 'band' } }
+    scale: { x: { type: 'band' } },
+    tooltip: { shared: false, crosshairs: true },
+    interaction: { tooltip: { series: true } }
   })
   c.data(props.data)
   const xField = props.data?.length && typeof props.data[0]?.date === 'string' ? 'date' : 'ts'
@@ -44,6 +46,7 @@ function init() {
     .encode('series','series')
     .style('columnWidthRatio', 0.6)
     .transform({ type: 'dodgeX' })
+    .tooltip({ title: xField, items: [{ name: 'value', channel: 'y' }] })
   if (props.withLabel) {
     geom.label({
       text: 'value',

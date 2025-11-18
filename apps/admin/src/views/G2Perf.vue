@@ -58,17 +58,17 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>同数据 · 关闭 OverflowHide</template>
-              <G2BarChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
+               <div v-for="(ds, i) in edgeDataSets" :key="i">
+                  <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
+                </div>
             </BaseCard>
           </el-col>
           <el-col :span="12">
             <BaseCard>
               <template #header>
-                <div class="hdr">
-                  <span>多组 · 开启 OverflowHide</span>
-                  <el-switch v-model="useOverflowHide" />
-                </div>
               </template>
+                <span>多组 · 开启 OverflowHide</span>
+                <el-switch v-model="useOverflowHide" />
                 <div v-for="(ds, i) in edgeDataSets" :key="i">
                   <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="useOverflowHide" />
                 </div>
@@ -198,7 +198,7 @@ function genEdge(days: number): Point[] {
 function buildEdgeSets(groups: number = 4) {
   const list: Point[][] = []
   for (let i = 0; i < groups; i++) {
-    list.push(genEdge(1000))
+    list.push(genEdge(360))
   }
   edgeDataSets.value = list
 }
@@ -212,7 +212,7 @@ function labelStepFor(ds: Point[]): number {
 onMounted(() => {
   normalData.value = gen(90)
   midData.value = genMid(90)
-  edgeData.value = genEdge(1000)
+  edgeData.value = genEdge(360)
   buildEdgeSets()
   buildLargeList()
   const start = new Date()
