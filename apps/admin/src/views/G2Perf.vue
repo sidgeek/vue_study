@@ -59,7 +59,7 @@
           <el-col :span="12">
             <BaseCard>
               <template #header>同数据 · 关闭 OverflowHide</template>
-              <G2LineChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="1" :useOverflowHide="false" />
+              <G2BarChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
             </BaseCard>
           </el-col>
           <el-col :span="12">
@@ -70,7 +70,7 @@
                   <el-switch v-model="useOverflowHide" />
                 </div>
               </template>
-              <G2LineChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="1" :useOverflowHide="useOverflowHide" />
+              <G2BarChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="useOverflowHide" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -90,6 +90,7 @@ import BaseCard from '@/components/BaseCard.vue'
 import G2LineChart from '@/components/g2/G2LineChart.vue'
 import G2IntervalChart from '@/components/g2/G2IntervalChart.vue'
 import SimpleLineChart from '@/components/g2/SimpleLineChart.vue'
+import G2BarChart from '@/components/g2/G2BarChart.vue'
 import G2Minimal from '@/components/g2/G2Minimal.vue'
 
  type Point = { ts: number; date: string; series: string; value: number }
