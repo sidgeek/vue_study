@@ -32,15 +32,14 @@
       </el-tab-pane>
 
       <el-tab-pane label="大跨度" name="large" lazy>
-        <el-row :gutter="16" class="mt16" v-for="(row, ri) in chunkedLargeData" :key="ri">
-          <el-col :span="12" v-for="(ds, ci) in row" :key="ci">
-            <BaseCard>
-              <template #header>{{ ((ri*2+ci)%2===0) ? '折线图' : '柱状图' }}</template>
-              <G2LineChart v-if="(ri*2+ci)%2===0" :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="120" />
-              <G2IntervalChart v-else :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="120" />
+        <div class="cards mt16" v-loading="isLargeLoading" element-loading-text="加载大跨度图表...">
+          <div class="cardItem" v-for="(ds, i) in chunkedLargeData.slice(0, visibleLargeCount)" :key="i">
+            <BaseCard :showHeader="false">
+              <!-- <G2LineChart :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="labelStepFor(ds)" /> -->
+              <G2LineChart :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="1" />
             </BaseCard>
-          </el-col>
-        </el-row>
+          </div>
+        </div>
       </el-tab-pane>
 
       <el-tab-pane label="折线图" name="single" lazy>
@@ -49,6 +48,29 @@
             <BaseCard>
               <template #header>折线图（10点）</template>
               <SimpleLineChart :data="singleData" :height="300" :labelStep="2" />
+            </BaseCard>
+          </el-col>
+        </el-row>
+      </el-tab-pane>
+
+      <el-tab-pane label="OverflowHide" name="overflow" lazy>
+
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <BaseCard>
+              <template #header>同数据 · 关闭 OverflowHide</template>
+              <G2LineChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="1" :useOverflowHide="false" />
+            </BaseCard>
+          </el-col>
+          <el-col :span="12">
+            <BaseCard>
+              <template #header>
+                <div class="hdr">
+                  <span>同数据 · 开启 OverflowHide</span>
+                  <el-switch v-model="useOverflowHide" />
+                </div>
+              </template>
+              <G2LineChart :data="edgeData" :height="300" :withLabel="true" :tickCount="6" labelMode="simple" :labelStep="1" :useOverflowHide="useOverflowHide" />
             </BaseCard>
           </el-col>
         </el-row>
@@ -68,26 +90,50 @@ import SimpleLineChart from '@/components/g2/SimpleLineChart.vue'
  type Point = { ts: number; date: string; series: string; value: number }
 
 const tab = ref<'normal'|'large'>('normal')
-const chartCountLarge = ref(4)
+const chartCountLarge = ref(12)
+const useOverflowHide = ref(true)
+const isLargeLoading = ref(false)
+const visibleLargeCount = ref(0)
 const singleData = ref<Point[]>([])
 
 const normalData = ref<Point[]>([])
+const midData = ref<Point[]>([])
+const edgeData = ref<Point[]>([])
 const largeDataList = ref<Point[][]>([])
 
 function buildLargeList() {
   const list: Point[][] = []
   for (let i = 0; i < chartCountLarge.value; i++) {
-    list.push(gen(360))
+    list.push(gen(1000))
   }
   largeDataList.value = list
 }
 
-const chunkedLargeData = computed(() => {
-  const rows: Point[][][] = []
-  for (let i = 0; i < largeDataList.value.length; i += 2) {
-    rows.push(largeDataList.value.slice(i, i + 2))
+const chunkedLargeData = computed(() => largeDataList.value)
+
+function progressiveRender() {
+  const total = largeDataList.value.length
+  const step = 3
+  visibleLargeCount.value = 0
+  for (let i = 0; i < Math.ceil(total / step); i++) {
+    setTimeout(() => {
+      visibleLargeCount.value = Math.min(total, visibleLargeCount.value + step)
+    }, i * 120)
   }
-  return rows
+}
+
+function startLargeLoading() {
+  isLargeLoading.value = true
+  visibleLargeCount.value = 0
+  setTimeout(() => {
+    isLargeLoading.value = false
+    progressiveRender()
+  }, 200)
+}
+
+watch(tab, (t) => {
+  if (t === 'large') startLargeLoading()
+  else visibleLargeCount.value = 0
 })
 
 function gen(days: number): Point[] {
@@ -105,8 +151,52 @@ function gen(days: number): Point[] {
   return out
 }
 
+function genMid(days: number): Point[] {
+  const out: Point[] = []
+  const start = new Date()
+  start.setDate(start.getDate() - days)
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start.getTime())
+    d.setDate(start.getDate() + i)
+    const ts = d.getTime()
+    const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    const vA = 20 + Math.round(Math.random()*60)
+    const vB = 20 + Math.round(Math.random()*60)
+    out.push({ ts, date, series: 'A', value: vA })
+    out.push({ ts, date, series: 'B', value: vB })
+  }
+  return out
+}
+
+function genEdge(days: number): Point[] {
+  const out: Point[] = []
+  const start = new Date()
+  start.setDate(start.getDate() - days)
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start.getTime())
+    d.setDate(start.getDate() + i)
+    const ts = d.getTime()
+    const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    const high = 92 + Math.round(Math.random()*8)
+    const low = Math.round(Math.random()*8)
+    const vA = i % 2 === 0 ? high : low
+    const vB = i % 2 === 0 ? low : high
+    out.push({ ts, date, series: 'A', value: vA })
+    out.push({ ts, date, series: 'B', value: vB })
+  }
+  return out
+}
+
+function labelStepFor(ds: Point[]): number {
+  const n = Array.isArray(ds) ? ds.length : 0
+  const maxLabels = 30
+  return n > 50 ? Math.max(1, Math.ceil(n / maxLabels)) : 1
+}
+
 onMounted(() => {
   normalData.value = gen(90)
+  midData.value = genMid(90)
+  edgeData.value = genEdge(90)
   buildLargeList()
   const start = new Date()
   start.setDate(start.getDate() - 10)
@@ -121,7 +211,7 @@ onMounted(() => {
   singleData.value = arr
 })
 
-watch(chartCountLarge, () => buildLargeList())
+watch(chartCountLarge, () => { buildLargeList(); if (tab.value === 'large') startLargeLoading() })
 </script>
 
 <style scoped>
@@ -132,4 +222,6 @@ watch(chartCountLarge, () => buildLargeList())
 .muted { color: var(--el-text-color-secondary); font-size: 12px; }
 .desc { color: var(--el-text-color-secondary); }
 .canvas { width: 100%; height: 300px; }
+.cards { display: flex; flex-wrap: wrap; gap: 16px; }
+.cardItem { flex: 0 0 calc((100% - 3*16px)/4); }
 </style>

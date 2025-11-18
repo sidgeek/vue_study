@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number; series?: string }
 
-const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex'; labelStep?: number }>()
+const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex'; labelStep?: number; useOverflowHide?: boolean }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -74,9 +74,10 @@ function init() {
         },
         position: 'top'
       })
-      ;(geom as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }] : [{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }, { type: 'overflowHide' }])
     } else {
       geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
+      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     }
   }
   if (showLabel && step > 1) {
@@ -114,6 +115,7 @@ function init() {
         text: 'value',
         formatter: (text: any, d: any) => ((Number(d?.__idx ?? -1) % step) === 0 ? String(text ?? '') : '')
       })
+      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     }
   }
   c.render()
@@ -129,7 +131,7 @@ watch(() => props.data, () => {
   }
 }, { deep: true })
 
-watch(() => [props.withLabel, props.tickCount, props.labelMode, props.labelStep], () => {
+watch(() => [props.withLabel, props.tickCount, props.labelMode, props.labelStep, props.useOverflowHide], () => {
   init()
 }, { deep: true })
 
