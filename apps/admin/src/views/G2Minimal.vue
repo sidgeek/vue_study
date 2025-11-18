@@ -41,7 +41,7 @@ function init() {
   })
   c.data(data)
   const bar = c.interval().encode('x', 'x').encode('y', 'y').style('columnWidthRatio', 0.6)
-  bar.label({ text: 'y', position: 'top' })
+  bar.label({ text: 'y', position: 'top', transform: [{ type: 'overflowHide' }] })
   c.render()
   chart.value = c
 }
