@@ -30,6 +30,14 @@ export default function run() {
           { type: 'overflowHide' },
         ],
       },
+      {
+        text: (d) => d.城市,
+        position: 'inside',
+        offset: 0,
+        transform: [
+          { type: 'overflowHide' },
+        ],
+      },
     ],
   });
   console.time('render');

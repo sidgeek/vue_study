@@ -19,7 +19,8 @@ const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
 const height = props.height ?? 300
 const pointsCount = computed(() => Array.isArray(props.data) ? props.data.length : 0)
-const labelsCount = computed(() => (props.withLabel ? pointsCount.value : 0))
+const LABELS_PER_DATUM = 5
+const labelsCount = computed(() => (props.withLabel ? pointsCount.value * LABELS_PER_DATUM : 0))
 
 function formatTs(ts: number): string {
   const d = new Date(ts)
@@ -55,11 +56,19 @@ function init() {
     .transform({ type: 'dodgeX' })
     .tooltip({ title: xField, items: [{ name: 'value', channel: 'y' }] })
   if (props.withLabel) {
-    geom.label({
-      text: 'value',
-      position: 'top',
-      transform: props.useOverflowHide ? [{ type: 'overflowHide' }] : []
-    })
+    geom.label([
+      {
+        text: 'value',
+        position: 'top',
+        transform: props.useOverflowHide ? [{ type: 'overflowHide' }] : []
+      },
+      {
+        text: 'series',
+        position: 'left',
+        offset: 8,
+        transform: props.useOverflowHide ? [{ type: 'overflowHide' }] : []
+      }
+    ])
   }
   c.render()
   chart.value = c

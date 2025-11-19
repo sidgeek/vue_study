@@ -35,7 +35,7 @@
         <div class="cards mt16" v-loading="isLargeLoading" element-loading-text="加载大跨度图表...">
           <div class="cardItem" v-for="(ds, i) in chunkedLargeData.slice(0, visibleLargeCount)" :key="i">
             <BaseCard :showHeader="false">
-              <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
+              <G2BarChart :data="ds" :height="300" :withLabel="true" :useOverflowHide="true" />
             </BaseCard>
           </div>
         </div>
@@ -103,7 +103,6 @@ const visibleLargeCount = ref(0)
 const singleData = ref<Point[]>([])
 
 const normalData = ref<Point[]>([])
-const midData = ref<Point[]>([])
 const edgeData = ref<Point[]>([])
 const edgeDataSets = ref<Point[][]>([])
 const largeDataList = ref<Point[][]>([])
@@ -197,7 +196,7 @@ function genEdge(days: number): Point[] {
 function buildEdgeSets(groups: number = 4) {
   const list: Point[][] = []
   for (let i = 0; i < groups; i++) {
-    list.push(genEdge(360))
+    list.push(genEdge(720))
   }
   edgeDataSets.value = list
 }
@@ -210,8 +209,7 @@ function labelStepFor(ds: Point[]): number {
 
 onMounted(() => {
   normalData.value = gen(90)
-  midData.value = genMid(90)
-  edgeData.value = genEdge(360)
+  edgeData.value = genEdge(720)
   buildEdgeSets()
   buildLargeList()
   const start = new Date()
