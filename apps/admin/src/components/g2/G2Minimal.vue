@@ -16,7 +16,7 @@ import G2BarChart from './G2BarChart.vue'
 import G2LineChart from './G2LineChart.vue'
 
 const base = new Date('2024-01-01T00:00:00Z').getTime()
-const raw = [1, 78, 55, 90, 35, 62, 80, 27, 70, 88]
+const raw = [1, 78, 55, 90, 35, 62, 80, 27, 40, 88]
 
 const barData = computed(() => raw.map((y, i) => ({
   date: new Date(base + i * 24 * 3600 * 1000).toISOString().slice(0, 10),

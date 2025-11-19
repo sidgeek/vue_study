@@ -19,6 +19,22 @@ function formatTs(ts: number): string {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
+function formatComplexLabel(d: any): string {
+  const t = Number(d?.ts ?? 0)
+  const dt = new Date(t)
+  const y = dt.getFullYear()
+  const m = String(dt.getMonth()+1).padStart(2,'0')
+  const dd = String(dt.getDate()).padStart(2,'0')
+  const h = String(dt.getHours()).padStart(2,'0')
+  const dow = ['日','一','二','三','四','五','六'][dt.getDay()]
+  const q = Math.floor(dt.getMonth()/3) + 1
+  // const v = Number(d?.value ?? 0)
+  // const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
+  // const pct = `${Math.round(v)}%`
+  // const series = String(d?.series ?? '')
+  return `${y}-${m}-${dd} ${h}:00 周${dow}_Q${q}`
+}
+
 function init() {
   dispose()
   if (!mount.value) return
@@ -52,19 +68,7 @@ function init() {
     if (isComplex) {
       geom.label({
         text: (d: any) => {
-          const t = Number(d?.ts ?? 0)
-          const dt = new Date(t)
-          const y = dt.getFullYear()
-          const m = String(dt.getMonth()+1).padStart(2,'0')
-          const dd = String(dt.getDate()).padStart(2,'0')
-          const h = String(dt.getHours()).padStart(2,'0')
-          const dow = ['日','一','二','三','四','五','六'][dt.getDay()]
-          const q = Math.floor(dt.getMonth()/3) + 1
-          const v = Number(d?.value ?? 0)
-          const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
-        const pct = `${Math.round(v)}%`
-        const series = String(d?.series ?? '')
-          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q} · ${series}: ${v} · ${cat} · ${pct}`
+          return formatComplexLabel(d)
         },
         style: {
           fontSize: 12,
@@ -88,19 +92,7 @@ function init() {
         text: (d: any) => {
           const idx = Number(d?.__idx ?? -1)
           if (idx < 0 || idx % step !== 0) return ''
-          const t = Number(d?.ts ?? 0)
-          const dt = new Date(t)
-          const y = dt.getFullYear()
-          const m = String(dt.getMonth()+1).padStart(2,'0')
-          const dd = String(dt.getDate()).padStart(2,'0')
-          const h = String(dt.getHours()).padStart(2,'0')
-          const dow = ['日','一','二','三','四','五','六'][dt.getDay()]
-          const q = Math.floor(dt.getMonth()/3) + 1
-          const v = Number(d?.value ?? 0)
-          const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
-          const pct = `${Math.round(v)}%`
-          const series = String(d?.series ?? '')
-          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q} · ${series}: ${v} · ${cat} · ${pct}`
+          return formatComplexLabel(d)
         },
         style: {
           fontSize: 12,
@@ -111,7 +103,7 @@ function init() {
         },
         position: 'top'
       })
-      ;(geom as any).labelTransform?.([{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }])
+      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     } else {
       geom.label({
         text: 'value',
