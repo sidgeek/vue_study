@@ -71,6 +71,7 @@ node {
           corepack prepare pnpm@10.20.0 --activate || (corepack disable && npm i -g pnpm@10.20.0)
           pnpm -v
           pnpm install --frozen-lockfile
+          pnpm --filter ./apps/server run prisma:generate || true
           ${forceBuild ? 'pnpm turbo run build' : "pnpm turbo run build --filter=...[${base_commit}] --parallel"}
         elif command -v pnpm >/dev/null 2>&1 || command -v npm >/dev/null 2>&1; then
           if ! command -v pnpm >/dev/null 2>&1; then
@@ -78,15 +79,17 @@ node {
           fi
           pnpm -v
           pnpm install --frozen-lockfile
+          pnpm --filter ./apps/server run prisma:generate || true
           ${forceBuild ? 'pnpm turbo run build' : "pnpm turbo run build --filter=...[${base_commit}] --parallel"}
         else
-          docker run --rm -v "$PWD:/workspace" -w /workspace node:20 bash -lc '
+          docker run --rm -v "$PWD:/workspace" -w /workspace node:22 bash -lc '
             set -euo pipefail
             npm i -g corepack@latest || true
             corepack enable || true
             corepack prepare pnpm@10.20.0 --activate || npm i -g pnpm@10.20.0
             pnpm -v
             pnpm install --frozen-lockfile
+            pnpm --filter ./apps/server run prisma:generate || true
             ${forceBuild ? 'pnpm turbo run build' : "pnpm turbo run build --filter=...[${base_commit}] --parallel"}
           '
         fi
