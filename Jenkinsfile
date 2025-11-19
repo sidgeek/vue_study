@@ -65,7 +65,14 @@ node {
     if (forceBuild || changed_server || changed_admin || changed_packages) {
       sh """
         set -euo pipefail
-        corepack enable
+        if command -v corepack >/dev/null 2>&1; then
+          corepack enable
+          corepack prepare pnpm@10.20.0 --activate || true
+        else
+          if ! command -v pnpm >/dev/null 2>&1; then
+            npm i -g pnpm@10.20.0
+          fi
+        fi
         pnpm -v
         pnpm install --frozen-lockfile
         ${forceBuild ? 'pnpm turbo run build' : "pnpm turbo run build --filter=...[${base_commit}] --parallel"}
