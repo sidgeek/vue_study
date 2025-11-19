@@ -3,10 +3,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, nextTick, onMounted, onBeforeUnmount, watch, createApp } from 'vue'
 import MarkdownIt from 'markdown-it'
 import analysisPlugin from '@/markdown/analysisPlugin'
 import { createAnalysisSDK } from '@analysis'
+import DatasetCard from '@/markdown/cards/DatasetCard.vue'
+import DashboardCard from '@/markdown/cards/DashboardCard.vue'
 
 const props = defineProps<{ source: string }>()
 
@@ -36,6 +38,26 @@ async function mountCards() {
     const sdk = createAnalysisSDK()
     const inst = sdk.mount(el, props)
     mounts.push({ el, unmount: () => inst.unmount() })
+  }
+  const datasetNodes = Array.from(root.querySelectorAll('.md-dataset-card')) as HTMLElement[]
+  for (const el of datasetNodes) {
+    const raw = el.dataset.datasetCard || '{}'
+    const norm = raw.replace(/[“”]/g, '"').replace(/，/g, ',').replace(/：/g, ':')
+    let props: any
+    try { props = JSON.parse(norm) } catch { props = { title: '数据集', name: '', value: 0 } }
+    const app = createApp(DatasetCard, props)
+    app.mount(el)
+    mounts.push({ el, unmount: () => app.unmount() })
+  }
+  const dashboardNodes = Array.from(root.querySelectorAll('.md-dashboard-card')) as HTMLElement[]
+  for (const el of dashboardNodes) {
+    const raw = el.dataset.dashboardCard || '{}'
+    const norm = raw.replace(/[“”]/g, '"').replace(/，/g, ',').replace(/：/g, ':')
+    let props: any
+    try { props = JSON.parse(norm) } catch { props = { title: '看板', link: '', linkText: '查看' } }
+    const app = createApp(DashboardCard, props)
+    app.mount(el)
+    mounts.push({ el, unmount: () => app.unmount() })
   }
 }
 

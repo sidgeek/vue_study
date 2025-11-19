@@ -15,6 +15,18 @@
   ]
 }
 
+@dataset-card {
+  "title": "数据集 卡片",
+  "name": "users",
+  "value": 1200
+}
+
+@dashboard-card {
+  "title": "看板 卡片",
+  "link": "www.baidu.com",
+  "linkText": "查看看板",
+}
+
 ```ts
 export const hello = (name: string) => 'Hello ' + name
 ```
