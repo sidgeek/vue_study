@@ -1,4 +1,4 @@
-export default [
+const base = [
   { 地区: '安徽', sale: 798350, 城市: '黄山市' },
   { 地区: '安徽', sale: 462200, 城市: '池州市' },
   { 地区: '安徽', sale: 453720, 城市: '铜陵市' },
@@ -464,3 +464,15 @@ export default [
   { 地区: '重庆', sale: 2770, 城市: '潼南区' },
   { 地区: '重庆', sale: 2930, 城市: '城口县' },
 ];
+const repeat = 5;
+const expanded = [] as { 地区: string; 城市: string; sale: number }[];
+for (let i = 0; i < repeat; i++) {
+  for (const d of base) {
+    expanded.push({
+      地区: d.地区,
+      城市: `${d.城市}-${i + 1}`,
+      sale: Math.max(0, Math.round(d.sale * (0.9 + Math.random() * 0.2))),
+    });
+  }
+}
+export default expanded;
