@@ -66,8 +66,9 @@ node {
       sh """
         set -euo pipefail
         if command -v corepack >/dev/null 2>&1; then
+          npm i -g corepack@latest || true
           corepack enable
-          corepack prepare pnpm@10.20.0 --activate || true
+          corepack prepare pnpm@10.20.0 --activate || (corepack disable && npm i -g pnpm@10.20.0)
           pnpm -v
           pnpm install --frozen-lockfile
           ${forceBuild ? 'pnpm turbo run build' : "pnpm turbo run build --filter=...[${base_commit}] --parallel"}
@@ -81,6 +82,7 @@ node {
         else
           docker run --rm -v "$PWD:/workspace" -w /workspace node:20 bash -lc '
             set -euo pipefail
+            npm i -g corepack@latest || true
             corepack enable || true
             corepack prepare pnpm@10.20.0 --activate || npm i -g pnpm@10.20.0
             pnpm -v
