@@ -8,6 +8,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { initWebVitalsCollector } from './metrics/webVitals'
 
+// 测试
 const app = createApp(App)
 app.use(createPinia())
 // Restore auth state before router kicks in
