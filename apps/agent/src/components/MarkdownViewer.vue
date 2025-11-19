@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
-import cardPlugin from '@/markdown/cardPlugin'
+import analysisPlugin from '@/markdown/analysisPlugin'
 import { createAnalysisSDK } from '@analysis'
 
 const props = defineProps<{ source: string }>()
@@ -16,7 +16,7 @@ const md = new MarkdownIt({
   typographer: true,
   breaks: true
 })
-md.use(cardPlugin)
+md.use(analysisPlugin)
 
 const html = computed(() => md.render(props.source || ''))
 
@@ -27,9 +27,9 @@ async function mountCards() {
   await nextTick()
   const root = document.querySelector('.markdown-viewer') as HTMLElement
   if (!root) return
-  const nodes = Array.from(root.querySelectorAll('.md-card')) as HTMLElement[]
+  const nodes = Array.from(root.querySelectorAll('.md-analysis')) as HTMLElement[]
   for (const el of nodes) {
-    const raw = el.dataset.card || '{}'
+    const raw = el.dataset.analysis || '{}'
     const norm = raw.replace(/[“”]/g, '"').replace(/，/g, ',').replace(/：/g, ':')
     let props: any
     try { props = JSON.parse(norm) } catch { props = { title: 'Card', items: [] } }

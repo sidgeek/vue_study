@@ -4,13 +4,13 @@ function escapeAttr(s: string) {
   return s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch] as string))
 }
 
-export function cardPlugin(md: MarkdownIt) {
+export function analysisPlugin(md: MarkdownIt) {
   const ruler = md.block.ruler
-  ruler.before('paragraph', 'card', (state, startLine, endLine, silent) => {
+  ruler.before('paragraph', 'analysis', (state, startLine, endLine, silent) => {
     const s0 = state.bMarks[startLine] + state.tShift[startLine]
     const e0 = state.eMarks[startLine]
     const first = state.src.slice(s0, e0)
-    if (!/^@card\b/.test(first)) return false
+    if (!/^@analysis-result\b/.test(first)) return false
     if (silent) return true
     const p = first.indexOf('{')
     if (p < 0) return false
@@ -35,16 +35,16 @@ export function cardPlugin(md: MarkdownIt) {
       line++
     }
     if (depth !== 0) return false
-    const token = state.push('card', 'div', 0)
+    const token = state.push('analysis', 'div', 0)
     token.meta = { json: acc }
     state.line = line
     return true
   })
 
-  md.renderer.rules['card'] = (tokens, idx) => {
+  md.renderer.rules['analysis'] = (tokens, idx) => {
     const json = tokens[idx].meta?.json as string
-    return `<div class="md-card" data-card='${escapeAttr(json.replace(/'/g, '&#39;'))}'></div>`
+    return `<div class="md-analysis" data-analysis='${escapeAttr(json.replace(/'/g, '&#39;'))}'></div>`
   }
 }
 
-export default cardPlugin
+export default analysisPlugin
