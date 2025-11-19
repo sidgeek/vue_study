@@ -625,31 +625,6 @@ const mockData = [
       CMT_EMOTION_TYPE: "未知情感",
       CMT_ASPECT_POSITIVE_VOLUME_RATE: 0,
     },
-    {
-      CMT_GLOBAL_ASPECT: "其他",
-      CMT_EMOTION_TYPE: "消息正面情感",
-      CMT_ASPECT_POSITIVE_VOLUME_RATE: 0.0003,
-    },
-    {
-      CMT_GLOBAL_ASPECT: "其他",
-      CMT_EMOTION_TYPE: "消息负面情感",
-      CMT_ASPECT_POSITIVE_VOLUME_RATE: 0,
-    },
-    {
-      CMT_GLOBAL_ASPECT: "其他",
-      CMT_EMOTION_TYPE: "消息中性情感",
-      CMT_ASPECT_POSITIVE_VOLUME_RATE: 0,
-    },
-    {
-      CMT_GLOBAL_ASPECT: "其他",
-      CMT_EMOTION_TYPE: "消息混合情感",
-      CMT_ASPECT_POSITIVE_VOLUME_RATE: 0,
-    },
-    {
-      CMT_GLOBAL_ASPECT: "其他",
-      CMT_EMOTION_TYPE: "未知情感",
-      CMT_ASPECT_POSITIVE_VOLUME_RATE: 0,
-    },
   ],
 ];
 
