@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:g2": "LOCAL_G2=1 vite",
     "start:local": "vite --mode local",
     "start:dev": "vite --mode dev",
     "build": "vue-tsc -b && vite build",

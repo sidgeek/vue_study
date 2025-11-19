@@ -2,10 +2,8 @@
   "name": "g2-demo",
   "private": true,
   "dependencies": {
-    "react": "18.1.0",
-    "@antv/g2": "5.1.13",
-    "lodash": "4.17.21",
-    "d3-format": "3.1.0"
+    "@antv/g2": "^5.1.13",
+    "lodash": "4.17.21"
   },
   "devDependencies": {
     "typescript": "latest",
