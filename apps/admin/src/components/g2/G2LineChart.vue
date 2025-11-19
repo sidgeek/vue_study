@@ -49,6 +49,7 @@ function init() {
       y: { title: 'value' }
     },
     scale: { x: { type: 'time', nice: true } },
+    legend: { position: 'top' },
     tooltip: { shared: true, title: (d: any) => {
       const t = (Array.isArray(d) ? d[0]?.ts : d?.ts) ?? 0
       return formatTs(Number(t))

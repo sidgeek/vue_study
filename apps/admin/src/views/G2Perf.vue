@@ -110,7 +110,7 @@ const largeDataList = ref<Point[][]>([])
 function buildLargeList() {
   const list: Point[][] = []
   for (let i = 0; i < chartCountLarge.value; i++) {
-    list.push(gen(180))
+    list.push(gen(90))
   }
   largeDataList.value = list
 }
@@ -151,8 +151,10 @@ function gen(days: number): Point[] {
     d.setDate(start.getDate() + i)
     const ts = d.getTime()
     const date = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-    out.push({ ts, date, series: 'A', value: Math.round(Math.random()*100) })
-    out.push({ ts, date, series: 'B', value: Math.round(Math.random()*100) })
+    for (let code = 'A'.charCodeAt(0); code <= 'N'.charCodeAt(0); code++) {
+      const s = String.fromCharCode(code)
+      out.push({ ts, date, series: s, value: Math.round(Math.random()*100) })
+    }
   }
   return out
 }
