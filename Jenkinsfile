@@ -101,7 +101,7 @@ node {
         sh """
           set -euo pipefail
           chmod +x scripts/deploy_postgres.sh || true
-          POSTGRES_PASSWORD='${params.PG_PASSWORD}' \
+          POSTGRES_PASSWORD='${POSTGRES_PASSWORD}' \
           COS_BUCKET='${params.COS_BUCKET}' COS_REGION='${params.COS_REGION}' COS_SONGS_PREFIX='${params.COS_SONGS_PREFIX}' COS_SIGN_EXPIRE_SECONDS='${params.COS_SIGN_EXPIRE_SECONDS}' \
           bash scripts/deploy_postgres.sh '${containerName}' '${image_full}' '${dbContainerName}' '${dbVolumeName}' '${networkName}' '${hostPort}' '${dbHostPort}'
         """
