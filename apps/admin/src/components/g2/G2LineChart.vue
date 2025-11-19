@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number; series?: string }
 
-const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; isComplex?: boolean; labelStep?: number; useOverflowHide?: boolean }>()
+const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; isComplex?: boolean; useOverflowHide?: boolean }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -62,8 +62,7 @@ function init() {
     .encode('color','series')
     .encode('series','series')
   const showLabel = props.isComplex === true || props.withLabel === true
-  const step = props.labelStep ?? 1
-  if (showLabel && step <= 1) {
+  if (showLabel) {
     const isComplex = props.isComplex === true
     if (isComplex) {
       geom.label({
@@ -85,33 +84,6 @@ function init() {
       ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     }
   }
-  if (showLabel && step > 1) {
-    const isComplex = props.isComplex === true
-    if (isComplex) {
-      geom.label({
-        text: (d: any) => {
-          const idx = Number(d?.__idx ?? -1)
-          if (idx < 0 || idx % step !== 0) return ''
-          return formatComplexLabel(d)
-        },
-        style: {
-          fontSize: 12,
-          fontWeight: 'bold',
-          fill: '#333',
-          wordWrap: false,
-          background: { fill: 'rgba(255,255,255,0.85)', stroke: '#999', radius: 4, padding: [4,6], shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.25)' }
-        },
-        position: 'top'
-      })
-      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
-    } else {
-      geom.label({
-        text: 'value',
-        formatter: (text: any, d: any) => ((Number(d?.__idx ?? -1) % step) === 0 ? String(text ?? '') : '')
-      })
-      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
-    }
-  }
   c.render()
   chart.value = c
 }
@@ -125,7 +97,7 @@ watch(() => props.data, () => {
   }
 }, { deep: true })
 
-watch(() => [props.withLabel, props.tickCount, props.isComplex, props.labelStep, props.useOverflowHide], () => {
+watch(() => [props.withLabel, props.tickCount, props.isComplex, props.useOverflowHide], () => {
   init()
 }, { deep: true })
 
