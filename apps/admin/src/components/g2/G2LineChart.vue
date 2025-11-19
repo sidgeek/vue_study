@@ -8,7 +8,7 @@ import { Chart } from '@antv/g2'
 
 type Datum = { ts: number; value: number; series?: string }
 
-const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; labelMode?: 'none'|'simple'|'complex'; labelStep?: number; useOverflowHide?: boolean }>()
+const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean; tickCount?: number; isComplex?: boolean; labelStep?: number; useOverflowHide?: boolean }>()
 
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
@@ -45,10 +45,10 @@ function init() {
     .encode('y','value')
     .encode('color','series')
     .encode('series','series')
-  const showLabel = props.labelMode === 'complex' || props.withLabel === true
+  const showLabel = props.isComplex === true || props.withLabel === true
   const step = props.labelStep ?? 1
   if (showLabel && step <= 1) {
-    const isComplex = props.labelMode === 'complex'
+    const isComplex = props.isComplex === true
     if (isComplex) {
       geom.label({
         text: (d: any) => {
@@ -62,26 +62,27 @@ function init() {
           const q = Math.floor(dt.getMonth()/3) + 1
           const v = Number(d?.value ?? 0)
           const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
-          const pct = `${Math.round(v)}%`
-          const series = String(d?.series ?? '')
-          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q}\n${series}: ${v}\n${cat} · ${pct}`
+        const pct = `${Math.round(v)}%`
+        const series = String(d?.series ?? '')
+          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q} · ${series}: ${v} · ${cat} · ${pct}`
         },
         style: {
           fontSize: 12,
           fontWeight: 'bold',
           fill: '#333',
+          wordWrap: false,
           background: { fill: 'rgba(255,255,255,0.85)', stroke: '#999', radius: 4, padding: [4,6], shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.25)' }
         },
         position: 'top'
       })
-      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }] : [{ type: 'overlapDodgeY' }, { type: 'overlapDodgeX' }, { type: 'overflowHide' }])
+      ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     } else {
       geom.label({ text: 'value', formatter: (text: any) => String(text ?? '') })
       ;(geom as any).labelTransform?.(props.useOverflowHide === false ? [] : [{ type: 'overflowHide' }])
     }
   }
   if (showLabel && step > 1) {
-    const isComplex = props.labelMode === 'complex'
+    const isComplex = props.isComplex === true
     if (isComplex) {
       geom.label({
         text: (d: any) => {
@@ -99,12 +100,13 @@ function init() {
           const cat = v >= 80 ? '高' : v >= 50 ? '中' : '低'
           const pct = `${Math.round(v)}%`
           const series = String(d?.series ?? '')
-          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q}\n${series}: ${v}\n${cat} · ${pct}`
+          return `${y}-${m}-${dd} ${h}:00 周${dow} Q${q} · ${series}: ${v} · ${cat} · ${pct}`
         },
         style: {
           fontSize: 12,
           fontWeight: 'bold',
           fill: '#333',
+          wordWrap: false,
           background: { fill: 'rgba(255,255,255,0.85)', stroke: '#999', radius: 4, padding: [4,6], shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.25)' }
         },
         position: 'top'
@@ -131,7 +133,7 @@ watch(() => props.data, () => {
   }
 }, { deep: true })
 
-watch(() => [props.withLabel, props.tickCount, props.labelMode, props.labelStep, props.useOverflowHide], () => {
+watch(() => [props.withLabel, props.tickCount, props.isComplex, props.labelStep, props.useOverflowHide], () => {
   init()
 }, { deep: true })
 
