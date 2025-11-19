@@ -1,4 +1,3 @@
-<!-- /Users/shilili/workstudy/vue_study/apps/admin/src/components/g2/G2BarChart.vue -->
 <template>
   <div ref="mount" class="g2-canvas" :style="{ height: `${height}px` }"></div>
 </template>
