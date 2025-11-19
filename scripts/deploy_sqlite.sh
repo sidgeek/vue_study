@@ -31,13 +31,18 @@ else
 fi
 
 # Start application (SQLite datasource)
+JWT_SECRET_VAL="${JWT_SECRET:-}"
+if [ -z "$JWT_SECRET_VAL" ]; then
+  echo "[deploy] ERROR: JWT_SECRET is not set. Provide via CI credentials." >&2
+  exit 1
+fi
 docker run -d \
   --name "$containerName" \
   --restart unless-stopped \
   --network "$networkName" \
   ${PORT_FLAG} \
   -e NODE_ENV=production \
-  -e JWT_SECRET=dev-secret \
+  -e JWT_SECRET \
   -e DATA_SOURCE=file \
   -e DATABASE_URL="file:/app/dev-data/dev.db" \
   -e AUTO_MIGRATE=false \

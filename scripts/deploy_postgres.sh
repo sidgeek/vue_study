@@ -33,14 +33,22 @@ else
   DB_PORT_FLAG="-p ${dbHostPort}:5432"
 fi
 
+# Read Postgres credentials (require password via env)
+PG_USER="${POSTGRES_USER:-postgres}"
+PG_PASSWORD="${POSTGRES_PASSWORD:-}"
+if [ -z "${PG_PASSWORD}" ]; then
+  echo "[deploy] ERROR: POSTGRES_PASSWORD is not set. Provide via CI secret or parameter." >&2
+  exit 1
+fi
+
 # Start Postgres
 docker run -d \
   --name "$dbContainerName" \
   --restart unless-stopped \
   --network "$networkName" \
   ${DB_PORT_FLAG} \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_USER="${PG_USER}" \
+  -e POSTGRES_PASSWORD="${PG_PASSWORD}" \
   -e POSTGRES_DB=appdb \
   -v "${dbVolumeName}:/var/lib/postgresql/data" \
   postgres:15
@@ -80,9 +88,9 @@ docker run -d \
   ${PORT_FLAG} \
   ${STUDIO_PORT_FLAG} \
   -e NODE_ENV=production \
-  -e JWT_SECRET=dev-secret \
+  -e JWT_SECRET \
   -e DATA_SOURCE=postgres \
-  -e DATABASE_URL="postgresql://postgres:postgres@${dbContainerName}:5432/appdb?schema=public" \
+  -e DATABASE_URL="postgresql://${PG_USER}:${PG_PASSWORD}@${dbContainerName}:5432/appdb?schema=public" \
   -e AUTO_MIGRATE=true \
   -e PRISMA_STUDIO_ENABLE=true \
   -e PRISMA_STUDIO_PORT=5556 \
