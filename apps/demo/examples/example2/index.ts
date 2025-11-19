@@ -18,7 +18,19 @@ export default function run() {
       x: '地区',
       y: 'sale',
       color: '城市',
+      tooltip: ['地区', '城市', 'sale'],
     },
+    legend: false, // 关闭图例，加载时间缩短
+    labels: [
+      {
+        text: (d) => d.sale,
+        position: 'top',
+        offset: 6,
+        transform: [
+          { type: 'overflowHide' },
+        ],
+      },
+    ],
   });
   console.time('render');
   const renderStart = new Date().getTime();
