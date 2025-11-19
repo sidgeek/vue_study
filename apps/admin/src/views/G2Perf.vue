@@ -35,7 +35,6 @@
         <div class="cards mt16" v-loading="isLargeLoading" element-loading-text="加载大跨度图表...">
           <div class="cardItem" v-for="(ds, i) in chunkedLargeData.slice(0, visibleLargeCount)" :key="i">
             <BaseCard :showHeader="false">
-              <!-- <G2LineChart :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="labelStepFor(ds)" /> -->
               <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
             </BaseCard>
           </div>
@@ -239,6 +238,6 @@ watch(chartCountLarge, () => { buildLargeList(); if (tab.value === 'large') star
 .muted { color: var(--el-text-color-secondary); font-size: 12px; }
 .desc { color: var(--el-text-color-secondary); }
 .canvas { width: 100%; height: 300px; }
-.cards { display: flex; flex-wrap: wrap; gap: 16px; }
-.cardItem { flex: 0 0 calc((100% - 3*16px)/4); }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cardItem { width: 100%; }
 </style>
