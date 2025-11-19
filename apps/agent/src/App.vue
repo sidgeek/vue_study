@@ -12,7 +12,7 @@
 import { ref } from 'vue'
 import MarkdownViewer from './components/MarkdownViewer.vue'
 
-const text = ref(`# 分析结果\n\n- 准确率: **92%**\n- 召回率: 88%\n\n> 这是一个来自大模型的示例 Markdown。\n\n\`\`\`ts\nexport const hello = (name: string) => 'Hello ' + name\n\`\`\`
+const text = ref(`# 分析结果\n\n- 准确率: **92%**\n- 召回率: 88%\n\n> 这是一个来自大模型的示例 Markdown。\n\n@card {\n  "title": "SDK 卡片",\n  "items": [\n    { "label": "准确率", "value": "92%" },\n    { "label": "召回率", "value": "88%" },\n    { "label": "样本数", "value": 1200 },\n    { "label": "耗时", "value": "380ms" }\n  ]\n}\n\n\`\`\`ts\nexport const hello = (name: string) => 'Hello ' + name\n\`\`\`
 `)
 </script>
 

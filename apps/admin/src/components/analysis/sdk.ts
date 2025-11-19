@@ -1,5 +1,6 @@
 import { createApp, h } from 'vue'
 import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 import AnalysisWidget from './AnalysisWidget.vue'
 
 export type AnalysisItem = { label: string; value: string | number }
