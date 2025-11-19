@@ -5,7 +5,7 @@
         <div class="card-header">G2 简图</div>
       </template>
       <G2BarChart :data="barData" :height="320" :withLabel="true" :useOverflowHide="true"/>
-      <G2LineChart :data="lineData" :height="320" :withLabel="true" :isComplex="true" :useOverflowHide="true"/>
+      <G2LineChart :data="lineData" :height="320" :withLabel="true" :useOverflowHide="true"/>
     </el-card>
   </div>
 </template>
