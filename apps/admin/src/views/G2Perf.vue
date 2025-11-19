@@ -36,7 +36,7 @@
           <div class="cardItem" v-for="(ds, i) in chunkedLargeData.slice(0, visibleLargeCount)" :key="i">
             <BaseCard :showHeader="false">
               <!-- <G2LineChart :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="labelStepFor(ds)" /> -->
-              <G2LineChart :data="ds" :height="300" :withLabel="true" :tickCount="6" labelMode="complex" :labelStep="1" />
+              <G2BarChart :data="ds" :height="300" :withLabel="true" :tickCount="6" :useOverflowHide="false" />
             </BaseCard>
           </div>
         </div>

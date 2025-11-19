@@ -1,9 +1,15 @@
 <template>
-  <div ref="mount" class="g2-canvas" :style="{ height: `${height}px` }"></div>
+  <div class="g2-wrapper">
+    <div ref="mount" class="g2-canvas" :style="{ height: `${height}px` }"></div>
+    <div class="g2-legend-side">
+      <span>数据点: {{ pointsCount }}</span>
+      <span style="margin-left:8px;">标签: {{ labelsCount }}</span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, shallowRef, watch, computed } from 'vue'
 import { Chart } from '@antv/g2'
 
 type Datum = { ts?: number; date?: string; value: number; series?: string }
@@ -12,6 +18,8 @@ const props = defineProps<{ data: Datum[]; height?: number; withLabel?: boolean;
 const mount = ref<HTMLDivElement | null>(null)
 const chart = shallowRef<Chart | null>(null)
 const height = props.height ?? 300
+const pointsCount = computed(() => Array.isArray(props.data) ? props.data.length : 0)
+const labelsCount = computed(() => (props.withLabel ? pointsCount.value : 0))
 
 function formatTs(ts: number): string {
   const d = new Date(ts)
@@ -67,5 +75,7 @@ onBeforeUnmount(() => dispose())
 </script>
 
 <style scoped>
-.g2-canvas { width: 100%; }
+.g2-wrapper { position: relative; }
+.g2-canvas { width: 100%; height: 100%; }
+.g2-legend-side { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; font-size: 12px; color: #666; background: rgba(255,255,255,0.8); padding: 2px 6px; border-radius: 4px; }
 </style>
