@@ -16,6 +16,8 @@ import { buildSongsRouter } from './routes/songs'
 import { buildPlaylistsRouter } from './routes/playlists'
 import { ensureDefaultPlaylists } from './config/playlists'
 
+// 测试
+
 const app = new Koa()
 const router = new Router({ prefix: '/api' })
 // 使用异步 bootstrap 初始化数据源与路由，避免顶层 await
