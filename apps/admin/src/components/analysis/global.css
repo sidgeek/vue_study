@@ -1,0 +1,5 @@
+/* 全局样式示例：为分析组件的卡片设置背景色 */
+.analysis-card .el-card{
+  background-color: #9ea6af !important;
+  border-color: #9ea6af !important;
+}

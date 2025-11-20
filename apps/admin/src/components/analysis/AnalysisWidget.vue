@@ -1,5 +1,6 @@
 <template>
-  <el-card shadow="never">
+  <div class="analysis-card">
+    <ElCard shadow="never">
     <template #header>
       <div class="card-header">{{ title }}</div>
     </template>
@@ -10,15 +11,18 @@
       </div>
     </div>
     <div class="actions">
-      <el-button type="primary" size="small" @click="handleOperate">操作</el-button>
+      <ElButton type="primary" size="small" @click="handleOperate">操作</ElButton>
     </div>
-  </el-card>
+  </ElCard>
+  </div>
+  
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits, ref, watch } from 'vue'
+import { ElCard, ElButton } from 'element-plus'
 
-const props = defineProps<{ title: string; items: { label: string; value: string | number }[] }>()
+const props = defineProps<{ title?: string; items: { label: string; value: string | number }[] }>()
 const emit = defineEmits<{ (e: 'action', payload: { source: string; items: { label: string; value: string | number }[] }): void }>()
 const stats = ref(props.items.slice())
 watch(() => props.items, (v) => { stats.value = v.slice() })
