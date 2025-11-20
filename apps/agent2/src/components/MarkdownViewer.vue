@@ -4,8 +4,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { defineCustomElement } from 'vue'
 import MarkdownIt from 'markdown-it'
 import customBlock from 'markdown-it-custom-block'
+import DatasetCardCE from '@/markdown/cards/DatasetCard.ce.vue'
+import DashboardCardCE from '@/markdown/cards/DashboardCard.ce.vue'
 
 const props = defineProps<{ source: string }>()
 
@@ -22,10 +25,12 @@ function normalizeJson(raw: string): any {
     .replace(/,\s*([}\]])/g, '$1')
   try { return JSON.parse(norm) } catch { return {} }
 }
-function safeLink(url: string) {
-  const u = String(url || '').trim()
-  if (!u) return '#'
-  return u.startsWith('http') ? u : `http://${u}`
+
+if (!customElements.get('dataset-card')) {
+  customElements.define('dataset-card', defineCustomElement(DatasetCardCE as any))
+}
+if (!customElements.get('dashboard-card')) {
+  customElements.define('dashboard-card', defineCustomElement(DashboardCardCE as any))
 }
 
 md.use(customBlock as any, {
@@ -41,14 +46,14 @@ md.use(customBlock as any, {
     const title = escapeAttr(String(data.title || ''))
     const name = escapeAttr(String(data.name || ''))
     const value = escapeAttr(String(data.value ?? ''))
-    return `<div class=\"card dataset\" data-kind=\"dataset-card\"><div class=\"hdr\"><span class=\"title\">${title}</span><span class=\"tag\">${name}</span></div><div class=\"val\">${value}</div></div>`
+    return `<dataset-card title="${title}" name="${name}" value="${value}"></dataset-card>`
   },
   'dashboard-card': (arg: string) => {
     const data = normalizeJson(arg || '{}')
     const title = escapeAttr(String(data.title || ''))
+    const link = escapeAttr(String(data.link || ''))
     const linkText = escapeAttr(String(data.linkText || '查看'))
-    const href = escapeAttr(safeLink(String(data.link || '')))
-    return `<div class=\"card dashboard\" data-kind=\"dashboard-card\"><div class=\"hdr\"><span class=\"title\">${title}</span></div><a class=\"link\" href=\"${href}\" target=\"_blank\" rel=\"noopener noreferrer\">${linkText}</a></div>`
+    return `<dashboard-card title="${title}" link="${link}" link-text="${linkText}"></dashboard-card>`
   }
 })
 

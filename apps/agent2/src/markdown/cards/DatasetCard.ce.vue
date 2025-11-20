@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ title?: string; name?: string; value?: number | string }>()
+defineProps<{ title?: string; name?: string; value?: number | string }>()
 </script>
 
 <style scoped>
