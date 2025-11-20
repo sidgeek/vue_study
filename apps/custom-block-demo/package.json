@@ -1,0 +1,20 @@
+{
+  "name": "custom-block-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "markdown-it": "^14.1.0",
+    "markdown-it-custom-block": "^1.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
+    "vue": "^3.5.24"
+  }
+}
