@@ -1,50 +1,58 @@
 <template>
-  <div class="markdown-viewer" v-html="html"></div>
-  <Teleport v-for="c in cards" :key="c.key" :to="c.el">
-    <component :is="c.is" v-bind="c.props" />
-  </Teleport>
+  <div class="markdown-viewer" :class="{ 'html-mode': true }" v-html="html"></div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onBeforeUnmount, watch, ref } from 'vue'
+import { computed } from 'vue'
 import MarkdownIt from 'markdown-it'
-import cardPlugin from '@/markdown/cardPlugin'
-import { AnalysisWidget } from '@analysis'
-import DatasetCard from '@/markdown/cards/DatasetCard.vue'
-import DashboardCard from '@/markdown/cards/DashboardCard.vue'
+import customBlock from 'markdown-it-custom-block'
 
 const props = defineProps<{ source: string }>()
 
 const md = new MarkdownIt({ html: false, linkify: true, typographer: true, breaks: true })
-md.use(cardPlugin)
 
-const html = computed(() => md.render(props.source || ''))
-
-type CardMount = { key: string; el: HTMLElement; props: any; is: any }
-const cards = ref<CardMount[]>([])
-
-async function collectCards() {
-  cards.value = []
-  await nextTick()
-  const root = document.querySelector('.markdown-viewer') as HTMLElement
-  if (!root) return
-  const nodes: { el: HTMLElement; is: any; raw: string }[] = []
-  root.querySelectorAll('.md-analysis-result').forEach((el) => nodes.push({ el: el as HTMLElement, is: AnalysisWidget, raw: (el as HTMLElement).dataset.props || '{}' }))
-  root.querySelectorAll('.md-dataset-card').forEach((el) => nodes.push({ el: el as HTMLElement, is: DatasetCard, raw: (el as HTMLElement).dataset.props || '{}' }))
-  root.querySelectorAll('.md-dashboard-card').forEach((el) => nodes.push({ el: el as HTMLElement, is: DashboardCard, raw: (el as HTMLElement).dataset.props || '{}' }))
-  let idx = 0
-  for (const node of nodes) {
-    const raw = node.raw || '{}'
-    const norm = raw.replace(/[“”]/g, '"').replace(/，/g, ',').replace(/：/g, ':')
-    let props: any
-    try { props = JSON.parse(norm) } catch { props = { title: 'Card', items: [] } }
-    cards.value.push({ key: `card-${idx++}`, el: node.el, props, is: node.is })
-  }
+function escapeAttr(s: string) {
+  return s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch] as string))
+}
+function normalizeJson(raw: string): any {
+  const norm = String(raw || '')
+    .replace(/[“”]/g, '"')
+    .replace(/，/g, ',')
+    .replace(/：/g, ':')
+    .replace(/,\s*([}\]])/g, '$1')
+  try { return JSON.parse(norm) } catch { return {} }
+}
+function safeLink(url: string) {
+  const u = String(url || '').trim()
+  if (!u) return '#'
+  return u.startsWith('http') ? u : `http://${u}`
 }
 
-onMounted(collectCards)
-watch(html, collectCards)
-onBeforeUnmount(() => { cards.value = [] })
+md.use(customBlock as any, {
+  'analysis-result': (arg: string) => {
+    const data = normalizeJson(arg || '{}')
+    const title = escapeAttr(String(data.title || ''))
+    const items = Array.isArray(data.items) ? data.items : []
+    const rows = items.map((it: any) => `<div class=\"row\"><span class=\"label\">${escapeAttr(String(it.label||''))}</span><span class=\"value\">${escapeAttr(String(it.value||''))}</span></div>`).join('')
+    return `<div class=\"card analysis\" data-kind=\"analysis-result\"><div class=\"hdr\"><span class=\"title\">${title}</span></div><div class=\"body\">${rows}</div></div>`
+  },
+  'dataset-card': (arg: string) => {
+    const data = normalizeJson(arg || '{}')
+    const title = escapeAttr(String(data.title || ''))
+    const name = escapeAttr(String(data.name || ''))
+    const value = escapeAttr(String(data.value ?? ''))
+    return `<div class=\"card dataset\" data-kind=\"dataset-card\"><div class=\"hdr\"><span class=\"title\">${title}</span><span class=\"tag\">${name}</span></div><div class=\"val\">${value}</div></div>`
+  },
+  'dashboard-card': (arg: string) => {
+    const data = normalizeJson(arg || '{}')
+    const title = escapeAttr(String(data.title || ''))
+    const linkText = escapeAttr(String(data.linkText || '查看'))
+    const href = escapeAttr(safeLink(String(data.link || '')))
+    return `<div class=\"card dashboard\" data-kind=\"dashboard-card\"><div class=\"hdr\"><span class=\"title\">${title}</span></div><a class=\"link\" href=\"${href}\" target=\"_blank\" rel=\"noopener noreferrer\">${linkText}</a></div>`
+  }
+})
+
+const html = computed(() => md.render(props.source || ''))
 </script>
 
 <style scoped>

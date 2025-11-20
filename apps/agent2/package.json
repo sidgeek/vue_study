@@ -9,14 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.22",
+    "element-plus": "^2.11.7",
     "markdown-it": "^14.1.0",
-    "element-plus": "^2.11.7"
+    "markdown-it-custom-block": "^1.0.0",
+    "vue": "^3.5.22"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@vitejs/plugin-vue": "^6.0.1",
-    "vite": "^7.1.7",
     "typescript": "~5.9.3",
-    "@types/markdown-it": "^14.1.2"
+    "vite": "^7.1.7"
   }
 }

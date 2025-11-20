@@ -410,6 +410,9 @@ importers:
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
+      markdown-it-custom-block:
+        specifier: ^1.0.0
+        version: 1.0.0
       vue:
         specifier: ^3.5.22
         version: 3.5.24(typescript@5.9.3)
@@ -5598,6 +5601,10 @@ packages:
   map-visit@1.0.0:
     resolution: {integrity: sha512-4y7uGv8bd2WdM9vpQsiQNo41Ln1NvhvDRuVt0k2JZQ+ezN2uaQes7lZeZ+QQUHOLQAtDaBJ+7wCbi+ab/KFs+w==}
     engines: {node: '>=0.10.0'}
+
+  markdown-it-custom-block@1.0.0:
+    resolution: {integrity: sha512-FuG/hKf5sEpL/r77lPH9FEIcz/i2doV5ZvMbFmEV25Ge3TYAup9hv1NcfeIodlbr1486YOYPQI7YfFpTO07iow==}
+    engines: {node: '>= 20.0.0'}
 
   markdown-it@14.1.0:
     resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
@@ -14285,6 +14292,8 @@ snapshots:
   map-visit@1.0.0:
     dependencies:
       object-visit: 1.0.1
+
+  markdown-it-custom-block@1.0.0: {}
 
   markdown-it@14.1.0:
     dependencies:
