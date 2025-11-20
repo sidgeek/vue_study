@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="actions">
-      <el-button type="primary" size="small" :disabled="!interactive" @click="handleOperate">操作</el-button>
+      <el-button type="primary" size="small" @click="handleOperate">操作</el-button>
     </div>
   </el-card>
 </template>
@@ -18,14 +18,12 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, ref, watch } from 'vue'
 
-const props = defineProps<{ title: string; items: { label: string; value: string | number }[]; interactive?: boolean }>()
+const props = defineProps<{ title: string; items: { label: string; value: string | number }[] }>()
 const emit = defineEmits<{ (e: 'action', payload: { source: string; items: { label: string; value: string | number }[] }): void }>()
 const stats = ref(props.items.slice())
-const interactive = props.interactive ?? true
 watch(() => props.items, (v) => { stats.value = v.slice() })
 
 function handleOperate() {
-  if (!interactive) return
   const next = stats.value.map((it) => {
     if (String(it.label).includes('准确率')) {
       const val = Math.min(99, Math.max(80, Math.round(90 + Math.random() * 5)))

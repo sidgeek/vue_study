@@ -10,18 +10,16 @@ export const AnalysisPlugin = { install(app: App) { app.component('AnalysisWidge
 export class AnalysisResultElement extends HTMLElement {
   private _app: any
   private _mountEl: HTMLDivElement | null = null
-  static get observedAttributes() { return ['title','items','interactive'] }
+  static get observedAttributes() { return ['title','items'] }
   connectedCallback() {
     if (this._app) return
     this._mountEl = document.createElement('div')
     this.appendChild(this._mountEl)
     const title = this.getAttribute('title') || ''
-    const interactiveAttr = this.getAttribute('interactive')
-    const interactive = interactiveAttr == null ? true : !['false','0','no'].includes(String(interactiveAttr).toLowerCase())
     let items: any[] = []
     const raw = this.getAttribute('items') || '[]'
     try { const v = JSON.parse(raw.replace(/&#39;/g, "'")); items = Array.isArray(v) ? v : [] } catch { items = [] }
-    const Root = { render() { return h(AnalysisWidget, { title, items, interactive }) } }
+    const Root = { render() { return h(AnalysisWidget, { title, items }) } }
     this._app = createApp(Root)
     this._app.use(ElementPlus)
     this._app.mount(this._mountEl!)
