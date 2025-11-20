@@ -10,7 +10,7 @@ export function cardPlugin(md: MarkdownIt) {
     const s0 = state.bMarks[startLine] + state.tShift[startLine]
     const e0 = state.eMarks[startLine]
     const first = state.src.slice(s0, e0)
-    const kindMatch = first.match(/^@(analysis-result|dataset-card|dashboard-card|card)\b/)
+    const kindMatch = first.match(/^@(analysis-result|dataset-card|dashboard-card)\b/)
     if (!kindMatch) return false
     if (silent) return true
     const kind = kindMatch[1]
