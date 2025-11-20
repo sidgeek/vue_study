@@ -4,11 +4,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { defineCustomElement } from 'vue'
+import { registerMarkdownWebComponents } from '@/markdown/webcomponents'
 import MarkdownIt from 'markdown-it'
 import customBlock from 'markdown-it-custom-block'
-import DatasetCardCE from '@/markdown/cards/DatasetCard.ce.vue'
-import DashboardCardCE from '@/markdown/cards/DashboardCard.ce.vue'
+registerMarkdownWebComponents()
 
 const props = defineProps<{ source: string }>()
 
@@ -26,20 +25,14 @@ function normalizeJson(raw: string): any {
   try { return JSON.parse(norm) } catch { return {} }
 }
 
-if (!customElements.get('dataset-card')) {
-  customElements.define('dataset-card', defineCustomElement(DatasetCardCE as any))
-}
-if (!customElements.get('dashboard-card')) {
-  customElements.define('dashboard-card', defineCustomElement(DashboardCardCE as any))
-}
 
 md.use(customBlock as any, {
   'analysis-result': (arg: string) => {
     const data = normalizeJson(arg || '{}')
     const title = escapeAttr(String(data.title || ''))
     const items = Array.isArray(data.items) ? data.items : []
-    const rows = items.map((it: any) => `<div class=\"row\"><span class=\"label\">${escapeAttr(String(it.label||''))}</span><span class=\"value\">${escapeAttr(String(it.value||''))}</span></div>`).join('')
-    return `<div class=\"card analysis\" data-kind=\"analysis-result\"><div class=\"hdr\"><span class=\"title\">${title}</span></div><div class=\"body\">${rows}</div></div>`
+    const itemsJson = escapeAttr(JSON.stringify(items).replace(/'/g, '&#39;'))
+    return `<analysis-result title="${title}" items='${itemsJson}'></analysis-result>`
   },
   'dataset-card': (arg: string) => {
     const data = normalizeJson(arg || '{}')
