@@ -12,7 +12,11 @@
     "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@analysis": ["../admin/src/components/analysis/index.ts"]
+    }
   },
   "include": ["src"]
 }
