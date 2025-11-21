@@ -22,6 +22,12 @@ export function createVueRenderer(Comp: any): MdComponentRenderer {
 
 // 如需 React 渲染器，可在使用处按需实现并传入 createReactRenderer 的等价函数
 
+const mdRenderers = new Map<string, MdComponentRenderer>()
+
+export function registerMdRenderer(tag: string, renderer: MdComponentRenderer) {
+  mdRenderers.set(tag, renderer)
+}
+
 export class MdComponentElement extends HTMLElement {
   static get observedAttributes() { return ['name', 'props'] }
   #renderer: MdComponentRenderer
@@ -47,7 +53,8 @@ export class MdComponentElement extends HTMLElement {
   #render() {
     if (!this.isConnected || !this.#name) return
     this.innerHTML = ''
-    this.#renderer(this, this.#name, this.#props)
+    const r = mdRenderers.get(this.#name) || this.#renderer
+    r(this, this.#name, this.#props)
   }
 }
 
