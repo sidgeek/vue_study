@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "analysis": "Analysis",
+    "echarts": "ECharts",
+    "users": "Users",
+    "playlistManage": "Playlists Manage",
+    "g6Dagre": "G6 Dagre",
+    "slate": "Slate",
+    "monaco": "Monaco",
+    "perfStress": "Perf Stress",
+    "canvasLab": "Canvas Lab",
+    "playlists": "Music Playlists"
+  },
+  "common": {
+    "logout": "Logout",
+    "login": "Login",
+    "language": "Language"
+  },
+  "canvas": {
+    "title": "Canvas Lab"
+  }
+}

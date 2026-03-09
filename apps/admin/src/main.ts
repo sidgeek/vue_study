@@ -7,10 +7,12 @@ import { useAuthStore } from './stores/auth'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { initWebVitalsCollector } from './metrics/webVitals'
+import i18n from './i18n'
 
 // 测试
 const app = createApp(App)
 app.use(createPinia())
+app.use(i18n)
 // Restore auth state before router kicks in
 useAuthStore().restore()
 app.use(router)

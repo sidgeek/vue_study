@@ -97,6 +97,12 @@ const routes: RouteRecordRaw[] = [
         name: 'playlist-manage',
         component: () => import('@/views/PlaylistManage.vue'),
         meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'] }
+      },
+      {
+        path: 'canvas-lab',
+        name: 'canvas-lab',
+        component: () => import('@/views/CanvasLab.vue'),
+        meta: { public: true }
       }
       ,
       {

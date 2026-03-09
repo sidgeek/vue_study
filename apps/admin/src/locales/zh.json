@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "home": "首页",
+    "dashboard": "仪表盘",
+    "analysis": "分析",
+    "echarts": "ECharts",
+    "users": "用户管理",
+    "playlistManage": "歌单管理",
+    "g6Dagre": "G6 Dagre",
+    "slate": "Slate",
+    "monaco": "Monaco",
+    "perfStress": "性能压测",
+    "canvasLab": "Canvas 实验室",
+    "playlists": "音乐歌单"
+  },
+  "common": {
+    "logout": "退出",
+    "login": "登录",
+    "language": "语言"
+  },
+  "canvas": {
+    "title": "Canvas 实验室"
+  }
+}

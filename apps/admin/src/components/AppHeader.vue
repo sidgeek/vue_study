@@ -10,22 +10,34 @@
         :default-active="active"
         @select="onSelect"
       >
-        <el-menu-item index="home">首页</el-menu-item>
-        <el-menu-item index="dashboard">仪表盘</el-menu-item>
-        <el-menu-item index="analysis">分析</el-menu-item>
-        <el-menu-item index="echarts">ECharts</el-menu-item>
-        <el-menu-item v-if="canManageUsers" index="users">用户管理</el-menu-item>
-        <el-menu-item v-if="canManageUsers" index="playlist-manage">歌单管理</el-menu-item>
-        <el-menu-item index="g6-dagre">G6 Dagre</el-menu-item>
-        <el-menu-item index="slate">Slate</el-menu-item>
-        <el-menu-item index="monaco-editor">Monaco</el-menu-item>
-        <el-menu-item index="perf-stress">性能压测</el-menu-item>
-        <el-menu-item index="playlists">音乐歌单</el-menu-item>
+        <el-menu-item index="home">{{ $t('nav.home') }}</el-menu-item>
+        <el-menu-item index="dashboard">{{ $t('nav.dashboard') }}</el-menu-item>
+        <el-menu-item index="analysis">{{ $t('nav.analysis') }}</el-menu-item>
+        <el-menu-item index="echarts">{{ $t('nav.echarts') }}</el-menu-item>
+        <el-menu-item v-if="canManageUsers" index="users">{{ $t('nav.users') }}</el-menu-item>
+        <el-menu-item v-if="canManageUsers" index="playlist-manage">{{ $t('nav.playlistManage') }}</el-menu-item>
+        <el-menu-item index="g6-dagre">{{ $t('nav.g6Dagre') }}</el-menu-item>
+        <el-menu-item index="slate">{{ $t('nav.slate') }}</el-menu-item>
+        <el-menu-item index="monaco-editor">{{ $t('nav.monaco') }}</el-menu-item>
+        <el-menu-item index="perf-stress">{{ $t('nav.perfStress') }}</el-menu-item>
+        <el-menu-item index="canvas-lab">{{ $t('nav.canvasLab') }}</el-menu-item>
+        <el-menu-item index="playlists">{{ $t('nav.playlists') }}</el-menu-item>
       </el-menu>
     </nav>
     <div class="right">
+      <el-dropdown @command="handleLangChange">
+        <span class="el-dropdown-link">
+          {{ $t('common.language') }}<el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="zh">中文</el-dropdown-item>
+            <el-dropdown-item command="en">English</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <span class="user">{{ displayName }}</span>
-      <el-button type="primary" link @click="onLogout">退出</el-button>
+      <el-button type="primary" link @click="onLogout">{{ $t('common.logout') }}</el-button>
     </div>
   </header>
 </template>
@@ -34,7 +46,10 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
+import { ArrowDown } from '@element-plus/icons-vue'
 
+const { locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -42,6 +57,11 @@ const auth = useAuthStore()
 const active = computed(() => (route.name?.toString() || 'home'))
 const displayName = computed(() => auth.name || '未登录')
 const canManageUsers = computed(() => ['ADMIN','SUPER_ADMIN'].includes(auth.roleCode || 'VISITOR'))
+
+function handleLangChange(lang: string) {
+  locale.value = lang
+  localStorage.setItem('lang', lang)
+}
 
 function onSelect(index: string) {
   if (index === 'home') router.push({ name: 'home' })
@@ -54,6 +74,7 @@ function onSelect(index: string) {
   if (index === 'slate') router.push({ name: 'slate' })
   if (index === 'monaco-editor') router.push({ name: 'monaco-editor' })
   if (index === 'perf-stress') router.push({ name: 'perf-stress' })
+  if (index === 'canvas-lab') router.push({ name: 'canvas-lab' })
   if (index === 'playlists') router.push({ name: 'playlists' })
 }
 
@@ -83,6 +104,13 @@ function onLogout() {
 .nav :deep(.el-menu--horizontal) {
   border-bottom: none;
 }
-.right { display: inline-flex; align-items: center; gap: 8px; }
+.right { display: inline-flex; align-items: center; gap: 16px; }
+.el-dropdown-link {
+  cursor: pointer;
+  color: var(--el-color-primary);
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
 .user { color: var(--el-text-color-secondary); }
 </style>
