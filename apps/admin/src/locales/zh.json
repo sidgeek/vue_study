@@ -19,6 +19,7 @@
     "language": "语言"
   },
   "canvas": {
-    "title": "Canvas 实验室"
+    "title": "Canvas 实验室",
+    "subtitle": "这里展示了 Canvas 开发中常见的一些坑和技巧"
   }
 }

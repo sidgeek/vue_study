@@ -48,8 +48,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
 import { ArrowDown } from '@element-plus/icons-vue'
+import i18n from '@/i18n'
 
-const { locale } = useI18n()
+const { locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()

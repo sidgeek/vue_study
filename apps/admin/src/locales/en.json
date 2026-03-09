@@ -19,6 +19,7 @@
     "language": "Language"
   },
   "canvas": {
-    "title": "Canvas Lab"
+    "title": "Canvas Lab",
+    "subtitle": "This shows common pitfalls and tips in Canvas development"
   }
 }

@@ -1,8 +1,8 @@
 <template>
   <div class="canvas-lab-page">
     <div class="header mb16">
-      <h2>{{ $t('canvas.title') }}</h2>
-      <p class="subtitle">这里展示了 Canvas 开发中常见的一些坑和技巧</p>
+      <h2>{{ t('canvas.title') }}</h2>
+      <p class="subtitle">{{ t('canvas.subtitle') }}</p>
     </div>
     
     <Canvas1px />
@@ -33,7 +33,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import Canvas1px from '@/components/Canvas1px.vue'
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

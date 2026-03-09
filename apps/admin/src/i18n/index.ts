@@ -4,6 +4,8 @@ import en from '@/locales/en.json'
 
 const i18n = createI18n({
   legacy: false, // 使用 Composition API
+  globalInjection: true, // 全局注入 $t 等函数
+  allowComposition: true, // 允许在 Composition API 中使用
   locale: localStorage.getItem('lang') || 'zh',
   fallbackLocale: 'en',
   messages: {
