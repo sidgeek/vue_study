@@ -3,8 +3,8 @@
     <AppHeader />
     <main class="content">
       <el-breadcrumb separator="/" class="mb16">
-        <el-breadcrumb-item>首页</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ current }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ t('nav.home') }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ currentLabel }}</el-breadcrumb-item>
       </el-breadcrumb>
       <router-view />
     </main>
@@ -14,19 +14,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from '@/components/AppHeader.vue'
 
+const { t } = useI18n()
 const route = useRoute()
 const auth = useAuthStore()
 auth.restore()
 
-const current = computed(() => {
+const currentLabel = computed(() => {
   if (route.name?.toString() === 'playlists') {
     const qn = String((route.query as any)?.name || '').trim()
     if (qn) return qn
   }
-  return route.name?.toString() || 'dashboard'
+  
+  const i18nKey = route.meta?.i18nKey as string
+  return i18nKey ? t(i18nKey) : (route.name?.toString() || t('nav.home'))
 })
 </script>
 

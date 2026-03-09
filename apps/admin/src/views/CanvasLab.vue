@@ -1,7 +1,7 @@
 <template>
   <div class="canvas-lab-page">
     <div class="header mb16">
-      <h2>{{ t('canvas.title') }}</h2>
+      <h2 class="title">{{ t('canvas.title') }}</h2>
       <p class="subtitle">{{ t('canvas.subtitle') }}</p>
     </div>
     
@@ -47,6 +47,9 @@ const { t } = useI18n()
 .header {
   padding: 10px 0;
   border-bottom: 1px solid #eee;
+}
+.title {
+  color: black;
 }
 .subtitle {
   color: #888;

@@ -21,95 +21,95 @@ const routes: RouteRecordRaw[] = [
         path: '',
         name: 'home',
         component: () => import('@/views/Home.vue'),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, i18nKey: 'nav.home', showInMenu: true }
       },
       {
         path: 'dashboard',
         name: 'dashboard',
         component: () => import('@/views/Dashboard.vue'),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, i18nKey: 'nav.dashboard', showInMenu: true }
       },
       {
         path: 'analysis',
         name: 'analysis',
         component: () => import('@/views/Analysis.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.analysis', showInMenu: true }
       }
       ,
       {
         path: 'echarts',
         name: 'echarts',
         component: () => import('@/views/ECharts.vue'),
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, i18nKey: 'nav.echarts', showInMenu: true }
       }
       ,
       {
         path: 'users',
         name: 'users',
         component: () => import('@/views/Users.vue'),
-        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'] }
+        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'], i18nKey: 'nav.users', showInMenu: true }
       }
       ,
       {
         path: 'g6-dagre',
         name: 'g6-dagre',
         component: () => import('@/views/G6Dagre.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.g6Dagre', showInMenu: true }
       }
       ,
       {
         path: 'slate',
         name: 'slate',
         component: () => import('@/views/Slate.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.slate', showInMenu: true }
       }
       ,
       {
         path: 'monaco-editor',
         name: 'monaco-editor',
         component: () => import('@/views/Monaco.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.monaco', showInMenu: true }
       }
       ,
       {
         path: 'perf-stress',
         name: 'perf-stress',
         component: () => import('@/views/PerfStress.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.perfStress', showInMenu: true }
       }
       ,
       {
         path: 'g2-perf',
         name: 'g2-perf',
         component: () => import('@/views/G2Perf.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.g2Perf', showInMenu: false }
       }
       ,
       {
         path: 'playlists',
         name: 'playlists',
         component: () => import('@/views/Playlists.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.playlists', showInMenu: true }
       }
       ,
       {
         path: 'playlist-manage',
         name: 'playlist-manage',
         component: () => import('@/views/PlaylistManage.vue'),
-        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'] }
+        meta: { requiresAuth: true, roles: ['ADMIN','SUPER_ADMIN'], i18nKey: 'nav.playlistManage', showInMenu: true }
       },
       {
         path: 'canvas-lab',
         name: 'canvas-lab',
         component: () => import('@/views/CanvasLab.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.canvasLab', showInMenu: true }
       }
       ,
       {
         path: 'xss-lab',
         name: 'xss-lab',
         component: () => import('@/views/XSSLab.vue'),
-        meta: { public: true }
+        meta: { public: true, i18nKey: 'nav.xssLab', showInMenu: false }
       }
     ]
   },

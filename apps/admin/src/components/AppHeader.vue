@@ -10,18 +10,13 @@
         :default-active="active"
         @select="onSelect"
       >
-        <el-menu-item index="home">{{ $t('nav.home') }}</el-menu-item>
-        <el-menu-item index="dashboard">{{ $t('nav.dashboard') }}</el-menu-item>
-        <el-menu-item index="analysis">{{ $t('nav.analysis') }}</el-menu-item>
-        <el-menu-item index="echarts">{{ $t('nav.echarts') }}</el-menu-item>
-        <el-menu-item v-if="canManageUsers" index="users">{{ $t('nav.users') }}</el-menu-item>
-        <el-menu-item v-if="canManageUsers" index="playlist-manage">{{ $t('nav.playlistManage') }}</el-menu-item>
-        <el-menu-item index="g6-dagre">{{ $t('nav.g6Dagre') }}</el-menu-item>
-        <el-menu-item index="slate">{{ $t('nav.slate') }}</el-menu-item>
-        <el-menu-item index="monaco-editor">{{ $t('nav.monaco') }}</el-menu-item>
-        <el-menu-item index="perf-stress">{{ $t('nav.perfStress') }}</el-menu-item>
-        <el-menu-item index="canvas-lab">{{ $t('nav.canvasLab') }}</el-menu-item>
-        <el-menu-item index="playlists">{{ $t('nav.playlists') }}</el-menu-item>
+        <el-menu-item 
+          v-for="item in menuItems" 
+          :key="item.name" 
+          :index="item.name"
+        >
+          {{ $t(item.i18nKey) }}
+        </el-menu-item>
       </el-menu>
     </nav>
     <div class="right">
@@ -57,7 +52,30 @@ const auth = useAuthStore()
 
 const active = computed(() => (route.name?.toString() || 'home'))
 const displayName = computed(() => auth.name || '未登录')
-const canManageUsers = computed(() => ['ADMIN','SUPER_ADMIN'].includes(auth.roleCode || 'VISITOR'))
+
+const menuItems = computed(() => {
+  const rootRoute = router.options.routes.find(r => r.path === '/')
+  if (!rootRoute || !rootRoute.children) return []
+
+  return rootRoute.children
+    .filter(r => {
+      // 1. 必须在菜单显示
+      if (!r.meta?.showInMenu) return false
+      
+      // 2. 权限过滤
+      const roles = r.meta?.roles as string[] | undefined
+      if (roles && roles.length) {
+        const userRole = auth.roleCode || 'VISITOR'
+        return roles.includes(userRole)
+      }
+      
+      return true
+    })
+    .map(r => ({
+      name: r.name as string,
+      i18nKey: (r.meta?.i18nKey as string) || `nav.${r.name as string}`
+    }))
+})
 
 function handleLangChange(lang: string) {
   locale.value = lang
@@ -65,18 +83,7 @@ function handleLangChange(lang: string) {
 }
 
 function onSelect(index: string) {
-  if (index === 'home') router.push({ name: 'home' })
-  if (index === 'dashboard') router.push({ name: 'dashboard' })
-  if (index === 'analysis') router.push({ name: 'analysis' })
-  if (index === 'echarts') router.push({ name: 'echarts' })
-  if (index === 'users') router.push({ name: 'users' })
-  if (index === 'playlist-manage') router.push({ name: 'playlist-manage' })
-  if (index === 'g6-dagre') router.push({ name: 'g6-dagre' })
-  if (index === 'slate') router.push({ name: 'slate' })
-  if (index === 'monaco-editor') router.push({ name: 'monaco-editor' })
-  if (index === 'perf-stress') router.push({ name: 'perf-stress' })
-  if (index === 'canvas-lab') router.push({ name: 'canvas-lab' })
-  if (index === 'playlists') router.push({ name: 'playlists' })
+  router.push({ name: index })
 }
 
 function onLogout() {
