@@ -7,6 +7,10 @@ declare global {
         title?: string
         items?: string
       }
+      'react-analysis': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        title?: string
+        items?: string
+      }
     }
   }
 }
